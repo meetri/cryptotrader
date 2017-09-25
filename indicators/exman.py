@@ -50,6 +50,36 @@ class ExchangeManager(object):
 
         return True
 
+    def update_exchange_status(self,trade, forcethrough = True ):
+        if "uuid" in trade.meta:
+
+            #if forcethrough or "details" not in trade.meta or trade.meta["details"]["IsOpen"] == True or trade.meta["details"]["IsOpen"] == "true":
+            if "uuid" in trade.meta:
+                try:
+                    self.log.info("get trade details trade: {}".format(trade.meta["uuid"]))
+                    res = Bittrex().account_get_order(trade.meta["uuid"]).getData()
+                    if res["success"]:
+                        trade.meta["details"] = res["result"]
+                        if trade.meta["details"]["IsOpen"] == False or trade.meta["details"]["IsOpen"] == "false":
+                            #TODO: Handle cancelled state...
+                            if trade.meta["details"]["CancelInitiated"] == True:
+                                trade.status = "cancelled"
+                            elif trade.meta["details"]["Type"] == "LIMIT_SELL":
+                                trade.status = "sold"
+                            else:
+                                trade.status = "holding"
+
+                        trade.save()
+
+                except Exception as ex:
+                    self.log.error("update_exchange_status failed withh {}".format(ex))
+                    trade.meta["last_error"] = "update_exchange_status failed with {}".format(ex)
+                    trade.save()
+            else:
+                self.log.info("trade is already marked as closed")
+        else:
+            self.log.info("uuid not found in meta data")
+
 
     def cancel_trade(self,trade):
         if "uuid" in trade.meta:
@@ -70,16 +100,13 @@ class ExchangeManager(object):
 
                     trade.status = "cancelled"
                     trade.save()
-                    details = Bittrex().account_get_order( trade.meta["uuid"] ).getData()
-                    trade.status = "cancelled"
-                    trade.meta["details"] = details["result"]
-                    trade.save()
+
+                    self.update_exchange_status(trade,forcethrough=True)
 
                 except Exception as ex:
                     self.log.error("cancel_trade failed with {}".format(ex))
                     trade.meta["last_error"] = "cancel_trade failed with {}".format(ex)
                     trade.save()
-                    raise(ex)
             else:
                 self.log.info("trade has aleady been cancelled")
         else:
@@ -102,13 +129,10 @@ class ExchangeManager(object):
                     trade.status = "open"
                     trade.meta["uuid"] = res["result"]["uuid"]
                     trade.save()
-                    details = Bittrex().account_get_order( res["result"]["uuid"] ).getData()
-                    trade.meta["details"] = details["result"]
-                    trade.save()
+                    self.update_exchange_status( trade )
 
         except Exception as ex:
             self.log.error("perform_trade failed with {}".format(ex))
-            raise(ex)
 
 
 

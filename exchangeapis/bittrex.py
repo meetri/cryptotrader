@@ -9,6 +9,7 @@ import requests
 class Bittrex(object):
 
     def __init__(self, key = None,secret = None):
+        self.timeout = 4
         self.api_root = "https://bittrex.com/api/v1.1/"
         self.api2_root = "https://bittrex.com/Api/v2.0/"
         if key == None:
@@ -37,7 +38,7 @@ class Bittrex(object):
         apisign = hmac.new ( self.api_secret.encode(), uri.encode(), hashlib.sha512 ).hexdigest()
         self.headers["apisign"] = apisign
 
-        self.response = requests.post( uri , data = json.dumps(payload) , headers = self.headers, timeout=2 )
+        self.response = requests.post( uri , data = json.dumps(payload) , headers = self.headers, timeout=self.timeout )
         self.response.raise_for_status()
         self.data = self.response.json()
 
@@ -54,7 +55,7 @@ class Bittrex(object):
         apisign = hmac.new ( self.api_secret.encode(), uri.encode(), hashlib.sha512 ).hexdigest()
         self.headers["apisign"] = apisign
 
-        self.response = requests.post( uri , data = json.dumps(payload) , headers = self.headers, timeout=2 )
+        self.response = requests.post( uri , data = json.dumps(payload) , headers = self.headers, timeout=self.timeout )
         self.response.raise_for_status()
         self.data = self.response.json()
 
@@ -73,7 +74,7 @@ class Bittrex(object):
         apisign = hmac.new ( self.api_secret.encode(), uri.encode(), hashlib.sha512 ).hexdigest()
         self.headers["apisign"] = apisign
 
-        self.response = requests.post( uri , data = json.dumps(payload) , headers = self.headers, timeout=2 )
+        self.response = requests.post( uri , data = json.dumps(payload) , headers = self.headers, timeout=self.timeout )
         self.response.raise_for_status()
         if self.response is not None:
             self.data = self.response.json()
@@ -92,7 +93,7 @@ class Bittrex(object):
         apisign = hmac.new ( self.api_secret.encode(), uri.encode(), hashlib.sha512 ).hexdigest()
         self.headers["apisign"] = apisign
 
-        self.response = requests.post( uri , data = json.dumps(payload) , headers = self.headers, timeout=2 )
+        self.response = requests.post( uri , data = json.dumps(payload) , headers = self.headers, timeout=self.timeout )
         self.response.raise_for_status()
         if self.response is not None:
             self.data = self.response.json()

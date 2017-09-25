@@ -51,7 +51,7 @@ class PgPool(object):
         self.db.putconn(conn)
         return res
 
-    def insert(self,  schema, mapdata, extra = "" ):
+    def insert(self,  schema, mapdata, extra = ""):
         conn = self.db.getconn()
         cur = conn.cursor()
 
@@ -64,20 +64,24 @@ class PgPool(object):
 
         sql = "INSERT INTO {} ( {} ) VALUES ( {} ) {} RETURNING id".format(schema, sql[0:-1],values[0:-1],extra)
 
-        cur.execute(sql,vdata)
-        conn.commit()
-        insert_id = cur.fetchone()
-        rowcount = cur.rowcount
-        cur.close()
-        self.db.putconn(conn)
+        try:
+            cur.execute(sql,vdata)
+            conn.commit()
+            insert_id = cur.fetchone()
+            rowcount = cur.rowcount
+        except Exception as ex:
+            insert_id = None
+            #raise ex
+        finally:
+            self.db.putconn(conn)
+            cur.close()
+
         return insert_id
 
 
     def update(self,  schema, pkey, mapdata, srcdata):
 
         if pkey in srcdata and srcdata[pkey] is not None:
-            conn = self.db.getconn()
-            cur = conn.cursor()
 
             sql = ""
             vdata = []
@@ -86,15 +90,22 @@ class PgPool(object):
                     sql += "{}=%s,".format( k )
                     vdata += [v]
 
+            rowcount = 0
             if len(sql) > 0:
-                sql = "UPDATE {} SET {} WHERE {}={}".format(schema, sql[0:-1], pkey, srcdata[pkey])
+                conn = self.db.getconn()
+                cur = conn.cursor()
+                try:
+                    sql = "UPDATE {} SET {} WHERE {}={}".format(schema, sql[0:-1], pkey, srcdata[pkey])
+                    cur.execute(sql,vdata)
+                    conn.commit()
+                except Exception as ex:
+                    print("problem with update {}".format(ex))
+                    #raise ex
+                finally:
+                    self.db.putconn(conn)
+                    cur.close()
 
-                cur.execute(sql,vdata)
-                conn.commit()
                 rowcount = cur.rowcount
-                cur.close()
-                self.db.putconn(conn)
-                return rowcount
-            else:
-                return 0
+
+            return rowcount
 

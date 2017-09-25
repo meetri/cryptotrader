@@ -4,6 +4,26 @@ from collections import OrderedDict
 class Columnize(object):
 
     @staticmethod
+    def draw_list( stdscr, line, xofs, rows , header = ""):
+
+        if len(header) > 0:
+            try:
+                stdscr.addstr( line, xofs, header)
+                line += 1
+            except:
+                pass
+
+        for row in rows:
+            try:
+                stdscr.addstr( line, xofs, str(row) )
+                line += 1
+            except:
+                pass
+
+        return line
+
+
+    @staticmethod
     def draw_table( stdscr, line, headers, rows , margin = 4, xofs = 0, showheader = True ):
         margin = 4
         colwidth = []

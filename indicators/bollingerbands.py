@@ -4,7 +4,7 @@ from collections import OrderedDict
 class BBands(object):
 
 
-    def __init__(self,csdata, timeperiod=20, nbdevup=2, nbdevdn=2, matype=0):
+    def __init__(self,csdata, timeperiod=20, nbdevup=2, nbdevdn=2, matype=0,label = "bbands"):
         self.log = logging.getLogger('crypto')
 
         self.timeperiod= timeperiod
@@ -12,10 +12,18 @@ class BBands(object):
         self.nbdevdn = nbdevdn
         self.matype = matype
 
+        self.label = label
+
         #candlestick data
         self.csdata = csdata
         self.get_bb()
 
+    def get_settings(self):
+        return "{}:{}:{}".format(self.timeperiod,self.nbdevup,self.nbdevdn)
+
+
+    def get_name(self):
+        return self.label
 
     def get_bb(self):
 
@@ -79,7 +87,7 @@ class BBands(object):
                 "analysis": OrderedDict()
                 }
 
-        res["analysis"]["name"] = "bbands"
+        res["analysis"]["name"] = "{}:{}".format(self.get_name(),self.get_settings())
         res["analysis"]["signal"] = signal
         res["analysis"]["trend"] = trend
         res["analysis"]["slope"] = slope

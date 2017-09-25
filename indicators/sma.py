@@ -4,15 +4,24 @@ from collections import OrderedDict
 class SMA(object):
 
 
-    def __init__(self,csdata, period = 30):
+    def __init__(self,csdata, period = 30,label = "sma"):
 
         self.log = logging.getLogger('crypto')
         #macd settings
         self.period = period
         #candlestick data
         self.csdata = csdata
+        self.label = label
 
         self.data = self.get_sma()
+
+
+    def get_settings(self):
+        return "{}".format(self.period)
+
+
+    def get_name(self):
+        return self.label
 
 
     def get_sma(self):
@@ -57,7 +66,7 @@ class SMA(object):
                 "analysis": OrderedDict()
                 }
 
-        res["analysis"]["name"] = "sma"
+        res["analysis"]["name"] = "{}:{}".format(self.get_name(),self.get_settings())
         res["analysis"]["signal"] = action
         res["analysis"]["sma"] = sma
         res["analysis"]["slope"] = slope

@@ -9,62 +9,40 @@ from middlebandsurfer import MiddleBandSurfer
 from bittrex import Bittrex
 from exman import ExchangeManager
 from trade import Trade
+from tman import TradeManager
 
 exman = ExchangeManager()
+tman = TradeManager("USDT-BTC")
 logger = logging.getLogger('crypto')
-
-"""
-trade = Trade({
-        "exchange": "bittrex",
-        "market": "USDT-BTC",
-        "quantity": 0.0001,
-        "price": 3000.00,
-        "trade_type": "buy",
-    })
-
-
-r = exman.perform_trade(trade)
-print( json.dumps(trade.meta))
-sys.exit()
-
-trades = Trade.load_by_id(66)
-trades[0].cancel()
-print( json.dumps(trades[0].meta))
-
-"""
-
-#def market2_selllimit( self, market,qty,rate, ordertype="LIMIT",timeineffect="IMMEDIATE_OR_CANCEL",condition="NONE",target=0):
-#cs = Bittrex().public_get_candles().getData()
-#res = Bittrex().market2_tradebuy("USDT-BTC",0.0001,3530)
-#res = Bittrex().market_buymarket("USDT-BTC",0.0001).getData()
-"""
-res = Bittrex().account_get_order("021ee90e-b447-46dd-86c9-b0522e90d392").getData()
-print(res)
-res = Bittrex().market_buylimit("USDT-BTC",0.0001,3500).getData()
-if res["success"]:
-    uuid = res["result"]["uuid"]
-    res = Bittrex().account_get_order(uuid).getData()
-    print(res)
-"""
-
-#print(res.getData())
-#sys.exit()
 
 def draw_bot_results( stdscr, bot ):
     stdscr.clear()
-    Columnize.draw_table( stdscr, 0, "name,signal,last,time", [bot.get_results()] )
+    Columnize.draw_table( stdscr, 0, "name,signal,cs,last,high,low,time", [bot.get_results()] )
     lr = Columnize.cursesMultiMap(stdscr,3, bot.get_indicators())
 
-    t = []
-    for trade in bot.get_monitored_trades():
-        t += [trade.details()]
+    Columnize.draw_list( stdscr,0, 135, bot.get_debug_messages(), header="Bot Debug Messages" )
 
-    Columnize.cursesMultiMap(stdscr,lr+1, t,sameheader=True)
+    s = []
+    b = []
+    for trade in bot.get_monitored_trades():
+        if trade.trade_type == "sell" and trade.status not in ["cancelled"]:
+            s += [trade.details()]
+        elif trade.trade_type == "buy" and trade.status not in ["cancelled"]:
+            b += [trade.details()]
+
+    if len(s) > 0:
+        lr = Columnize.cursesMultiMap(stdscr,lr+1, s,sameheader=True)
+
+    if len(b) > 0:
+        Columnize.cursesMultiMap(stdscr,lr+1, b,sameheader=True)
+
     stdscr.refresh()
 
 
 def main(stdscr):
     mybot = MiddleBandSurfer("USDT-BTC")
+    tman.monitor_trades(mybot)
+    tman.start(15)
     while True:
         try:
             mybot.process()
@@ -74,6 +52,7 @@ def main(stdscr):
             draw_bot_results(stdscr,mybot)
         except Exception as ex:
             logger.error(ex)
+            raise ex
 
         time.sleep(2)
 

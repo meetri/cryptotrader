@@ -10,6 +10,7 @@ class MACD(object):
         self.fastperiod = fastperiod
         self.slowperiod = slowperiod
         self.signalperiod = signalperiod
+        self.label = "macd"
 
         #number of segments after bull trend does a buy action occur
         self.bull_lag = bull_lag
@@ -18,6 +19,14 @@ class MACD(object):
         self.csdata = csdata
 
         self.data = self.get_macd()
+
+
+    def get_settings(self):
+        return "{}:{}:{}".format(self.fastperiod,self.slowperiod,self.signalperiod)
+
+
+    def get_name(self):
+        return self.label
 
 
     def get_macd(self):
@@ -103,7 +112,7 @@ class MACD(object):
                 "analysis": OrderedDict()
                 }
 
-        res["analysis"]["name"] = "macd"
+        res["analysis"]["name"] = "{}:{}".format(self.get_name(),self.get_settings())
         res["analysis"]["signal"] = action
         res["analysis"]["trend"] = tdata["trend"]
         res["analysis"]["trendlength"] = tdata["length"]
