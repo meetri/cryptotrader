@@ -11,8 +11,10 @@ from exman import ExchangeManager
 from trade import Trade
 from tman import TradeManager
 
+exchange = os.getenv("EXCHANGE","USDT-BTC")
+
 exman = ExchangeManager()
-tman = TradeManager("USDT-BTC")
+tman = TradeManager(exchange)
 logger = logging.getLogger('crypto')
 
 def draw_bot_results( stdscr, bot ):
@@ -40,7 +42,7 @@ def draw_bot_results( stdscr, bot ):
 
 
 def main(stdscr):
-    mybot = MiddleBandSurfer("USDT-BTC")
+    mybot = MiddleBandSurfer(exchange,0)
     tman.monitor_trades(mybot)
     tman.start(15)
     while True:

@@ -71,7 +71,6 @@ class PgPool(object):
             rowcount = cur.rowcount
         except Exception as ex:
             insert_id = None
-            #raise ex
         finally:
             self.db.putconn(conn)
             cur.close()

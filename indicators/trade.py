@@ -19,10 +19,10 @@ class Trade(object):
         self.pgpool = PgPool.getInstance()
 
         #protections
-        self.max_trade_quantity = 0.001
+        self.max_trade_quantity = 0.01
         self.max_trade_frequency = 120    #seconds
 
-        self.increase_goal = 0.02
+        self.increase_goal = 0.01
 
         self.hold = False
 
@@ -30,7 +30,6 @@ class Trade(object):
     def sign_trade(self,trade):
         trade.meta["related_trade_id"] = self.pkey
         return trade
-
 
 
     def forsale(self,amount, minbuy=False):

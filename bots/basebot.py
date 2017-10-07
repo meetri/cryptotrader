@@ -16,17 +16,17 @@ class BaseBot(object):
         self.results = {}
         self.signal = None
         self.trade_price = None
-        self.trade_quantity = 0.001
         self.trades = []
         self.rejected_trades = []
         self.load_active_trades()
         self.last_trade_time = None
         self.last_trade_price = None
+        self.trade_quantity = 0.01
         self.minimum_trade_frequency = 120
-        self.max_ongoing_trades = 5
+        self.max_ongoing_trades = 10
+        self.trade_price_gap = 0
         self.debug = []
         self.signal_monitor = {}
-        self.trade_price_gap = 0
 
         # lag signal by about 30 seconds...
         self.signal_lagtime = 30
@@ -136,7 +136,7 @@ class BaseBot(object):
 
         if self.signal == "overbought":
             for trade in self.trades:
-                if trade.forsale(last,minbuy=True):
+                if trade.forsale(last,minbuy=False):
                     trade_type = "sell"
                     if sell_trade:
                         if trade.details()["change"] > sell_trade.details()["change"]:

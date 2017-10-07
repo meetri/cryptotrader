@@ -145,6 +145,10 @@ class ExchangeManager(object):
             if trade.order_type in ["instant","market","limit"]:
                 self.send_trade(trade)
             elif trade.order_type == "trailing":
+                #TODO follow the trend's burst to it's end prior to executing the trade
+                bestseller = BestSeller(bot,trade,"1m")
+                trade.botmanager = bestseller
+                #self.send_trade(trade)
                 pass
             else:
                 self.log.warn("unknown order_type: {}".format(trade.order_type))
