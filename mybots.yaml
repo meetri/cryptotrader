@@ -7,9 +7,9 @@ crypto-bots:
         min_trade_freq: 300
         max_trades: 10
 
-    btc-scraper:
-        market: USDT-BTC
-        trade_price_gap: 0.59
+    eth-scraper:
+        market: USDT-ETH
+        trade_price_gap: 0.09
         max_trade_qty: 0.01
         min_trade_freq: 300
         max_trades: 10
