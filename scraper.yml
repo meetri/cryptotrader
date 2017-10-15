@@ -1,0 +1,144 @@
+version: "3.1"
+
+services:
+
+    #TODO: Move market summary definition list here instead of postgres
+    #get market summary and push to redis
+    summary-scraper:
+        image: meetri/cryptocoin:latest
+        hostname: crypto-scraper
+        networks:
+            - backend 
+        environment:
+            DEBUGMODE: "true"
+            GET_MARKET_SUMMARY: "true"
+            JOB: "nodejs_websocket"
+            #force exit the container to refresh websocket connection
+            FORCE_EXIT: 30
+            QUEUE: "marketqueue"
+            TA_INTERVAL: 30000
+            INFLUXDB_HOST: "db_influxdb"
+            REDIS_HOST: "db_redis"
+            REDIS_PORT: 6379
+            PGHOST: "db_postgresql"
+            PGPASSWORD: ${PGPASSWORD}
+            bittrex_key: ${BITTREX_KEY}
+            bittrex_secret: ${BITTREX_SECRET}
+        deploy:
+            replicas: 1
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 512mb
+
+
+    # Get market order data and push to redis... ( not needed for bot )
+    order-scraper:
+        image: meetri/cryptocoin:latest
+        hostname: crypto-scraper
+        networks:
+            - backend 
+        environment:
+            DEBUGMODE: "true"
+            GET_MARKET_ORDERS: "true"
+            JOB: "nodejs_websocket"
+            FORCE_EXIT: 30
+            QUEUE: "marketqueue"
+            TA_INTERVAL: 30000
+            INFLUXDB_HOST: "db_influxdb"
+            REDIS_HOST: "db_redis"
+            REDIS_PORT: 6379
+            PGHOST: "db_postgresql"
+            PGPASSWORD: ${PGPASSWORD}
+            bittrex_key: ${BITTREX_KEY}
+            bittrex_secret: ${BITTREX_SECRET}
+        deploy:
+            replicas: 1
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 512mb
+
+
+    # balance scraper push to redis.. ( not needed for bot )
+    balance-scraper:
+        image: meetri/cryptocoin:latest
+        hostname: crypto-scraper
+        networks:
+            - backend 
+        environment:
+            DEBUGMODE: "true"
+            POLL_BALANCE: "true"
+            POLL_MARKET_SUMMARY: "false"
+            MARKET_POLL_INTERVAL: 60000
+            BALANCE_INTERVAL: 60000
+            JOB: "nodejs_websocket"
+            FORCE_EXIT: 30
+            QUEUE: "marketqueue"
+            REDIS_HOST: "db_redis"
+            REDIS_PORT: 6379
+            bittrex_key: ${BITTREX_KEY}
+            bittrex_secret: ${BITTREX_SECRET}
+        deploy:
+            replicas: 1
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 512mb
+
+
+    #get market data from redis and do bulk writes to influxdb
+    coin-saver:
+        image: meetri/cryptocoin:latest
+        hostname: crypto-scraper
+        networks:
+            - backend 
+        environment:
+            JOB: "save_marketdata"
+            QUEUE: "marketqueue"
+            WORKERS: 10
+            TA_WORKERS: 0
+            INFLUXDB_HOST: "db_influxdb"
+            REDIS_HOST: "db_redis"
+            REDIS_PORT: 6379
+            PGHOST: "db_postgresql"
+            PGPASSWORD: "abignewworld"
+            bittrex_key: ${BITTREX_KEY}
+            bittrex_secret: ${BITTREX_SECRET}
+        deploy:
+            replicas: 1
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 1g
+
+    #do a bunchof TA on select currencies and write to influxdb
+    #TODO: make TA indicators configurable 
+    ta-calc:
+        image: meetri/cryptocoin:latest
+        hostname: crypto-scraper
+        networks:
+            - backend 
+        environment:
+            JOB: "save_marketdata"
+            QUEUE: "marketqueue"
+            WORKERS: 0
+            TA_WORKERS: 10
+            INFLUXDB_HOST: "db_influxdb"
+            REDIS_HOST: "db_redis"
+            REDIS_PORT: 6379
+            PGHOST: "db_postgresql"
+            PGPASSWORD: "abignewworld"
+            bittrex_key: ${BITTREX_KEY}
+            bittrex_secret: ${BITTREX_SECRET}
+        deploy:
+            replicas: 1
+            resources:
+                limits:
+                    cpus: "2"
+                    memory: 1g
+            
+networks:
+    backend:
+        external: true
+

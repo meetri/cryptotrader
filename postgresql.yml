@@ -1,0 +1,41 @@
+version: "3.1"
+
+services:
+
+    postgresql:
+        image: postgres:9.6 
+        hostname: postgres
+        networks:
+            - backend 
+        environment:
+            POSTGRES_PASSWORD: ${PGPASSWORD}
+        volumes:
+            - "db-data:/var/lib/postgresql/data"
+        deploy:
+            replicas: 1
+            restart_policy:
+                condition: on-failure
+                delay: 5s
+                max_attempts: 3
+                window: 120s
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 1g
+                reservations:
+                    cpus: "0.5"
+                    memory: 512mb
+            placement:
+                constraints: [node.role == manager]
+
+            
+networks:
+    backend:
+        external: true
+
+volumes:
+    db-data: 
+        driver: local-persist
+        driver_opts:
+            mountpoint: /mnt/shared_data/ltsdata/pgdata
+
