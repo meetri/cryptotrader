@@ -26,9 +26,5 @@ TODO:
 - [ ] create a simpler datasource that will poll live exchange API data real-time ( used for 1hr candles and up )
 
 
-*Notes*
-I basically wrote this in a couple weeks after about 2 months of playing around in bitcoin and alt coins.
-
-
 *Donations Welcome*
 1H1pzUTYbkEZqTJ2Gk2YBAURoL95U3nW7s
