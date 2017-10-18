@@ -14,6 +14,7 @@ var get_market_summary = process.env.GET_MARKET_SUMMARY || "false"
 var get_market_orders = process.env.GET_MARKET_ORDERS || "false"
 var poll_market_summary = process.env.POLL_MARKET_SUMMARY || "false"
 var force_exit = process.env.FORCE_EXIT || 30
+var market_list = process.env.MARKET_LIST || ""
 
 var socket_count = 0
 var socket2_count = 0
@@ -25,38 +26,20 @@ bittrex.options({
     'apisecret' : process.env.bittrex_secret
 })
 
-marketlist = []
-
-if (get_market_orders == "true"){
-    client.connect()
-    client.query("SELECT market_name FROM markets.marketlist WHERE enabled=true", (err, res) => {
-
-        if ( err ){
-            console.log("there was an error",err)
-        }else if ( res ){
-            for ( var i in res["rows"] ){
-                mn = res['rows'][i].market_name;
-                //console.log("adding: ",mn);
-                marketlist.push(mn);
-            }
-
-            console.log("subscribing to "+marketlist.length +" markets from marketlist")
-
-            const websocketsclient = bittrex.websockets.subscribe(marketlist, function(data) {
-                blob = JSON.stringify(data)
-                chan.rpush(queuename, blob);
-                socket_count++;
-                if ( debugmode == "true" && (socket_count % 100 == 0) ){
-                    console.log("marketlist websocket event count",socket_count)
-                }
-            });
-
+function create_ws_marketorders( marketlist ){
+    console.log("subscribing to "+marketlist.length +" markets from marketlist")
+    const websocketsclient = bittrex.websockets.subscribe(marketlist, function(data) {
+        blob = JSON.stringify(data)
+        chan.rpush(queuename, blob);
+        socket_count++;
+        if ( debugmode == "true" && (socket_count % 100 == 0) ){
+            console.log("marketlist websocket event count",socket_count)
         }
-    })
+    });
 }
 
-if ( get_market_summary == "true" ){
-    console.log("websocket listen")
+function create_ws_marketsummary(){
+    console.log("subscribing marketsummary feed")
     var websocketsclient2 = bittrex.websockets.listen( function(data) {
         chan.rpush(queuename, JSON.stringify(data));
         socket2_count++;
@@ -65,6 +48,7 @@ if ( get_market_summary == "true" ){
         }
     });
 }
+
 
 function getBalances(){
     bittrex.getbalances(function( data ) {
@@ -110,5 +94,31 @@ if ( get_balance == "true" ){
 
 if ( poll_market_summary == "true") {
     setInterval( getMarketSummaries, get_market_poll_interval )
+}
+
+marketlist = []
+if (get_market_orders == "true"){
+
+    if ( market_list.length == 0 ){
+        client.connect()
+        client.query("SELECT market_name FROM markets.marketlist WHERE enabled=true", (err, res) => {
+            if ( err ){
+                console.log("there was an error",err)
+            }else if ( res ){
+                for ( var i in res["rows"] ){
+                    mn = res['rows'][i].market_name;
+                    marketlist.push(mn);
+                }
+                create_ws_marketorders(marketlist)
+            }
+        })
+    }else {
+        create_ws_marketorders(market_list.split(" "))
+    }
+
+}
+
+if ( get_market_summary == "true" ){
+    create_ws_marketsummary()
 }
 
