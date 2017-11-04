@@ -1,0 +1,37 @@
+version: "3.1"
+
+services:
+
+    grafana:
+        image: grafana/grafana:4.4.3
+        hostname: grafana
+        networks:
+            - afrontend
+            - backend 
+        environment:
+            GF_SERVER_ROOT_URL: "http://db_influxdb"
+            GF_SECURITY_ADMIN_PASSWORD: "mysecretpassword"
+            GF_INSTALL_PLUGINS: "grafana-piechart-panel,grafana-clock-panel"
+        volumes:
+            - "data:/var/lib/grafana"
+        deploy:
+            replicas: 1
+            labels:
+                - "traefik.port=3000"
+                - "traefik.frontend.entryPoints=http"
+                - "traefik.frontend.rule=Host:grafana.docker.ptechtoolz.com"
+                - "traefik.docker.network=afrontend"
+
+            
+networks:
+    afrontend:
+        external: true
+    backend:
+        external: true
+
+volumes:
+    data: 
+        driver: local-persist
+        driver_opts:
+            mountpoint: /mnt/shared_data/grafana
+

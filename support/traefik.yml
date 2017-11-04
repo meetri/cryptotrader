@@ -1,0 +1,29 @@
+version: '3.2'
+
+services:
+
+  traefik:
+    image: traefik:v1.4.1
+    networks:
+      - afrontend
+    ports:
+      - 80:80
+      - 8080:8080
+      - 443:443
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+      - type: bind
+        source: /mnt/shared_data/traefik/traefik.toml
+        target: /traefik.toml
+      - type: bind
+        source: /mnt/shared_data/certs
+        target: /opt/certs
+    deploy:
+        placement:
+            constraints: [node.role == manager]
+
+networks:
+  afrontend:
+    external: true
