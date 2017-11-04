@@ -10,7 +10,9 @@ services:
         environment:
             POSTGRES_PASSWORD: "mysecretpassword"
         volumes:
-            - "db-data:/var/lib/postgresql/data"
+          - type: bind
+            source: /mnt/shared_data/ltsdata/pgdata
+            target: /var/lib/postgresql/data
         deploy:
             replicas: 1
             resources:
@@ -27,10 +29,4 @@ services:
 networks:
     backend:
         external: true
-
-volumes:
-    db-data: 
-        driver: local-persist
-        driver_opts:
-            mountpoint: /mnt/shared_data/ltsdata/pgdata
 

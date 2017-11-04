@@ -13,7 +13,9 @@ services:
             GF_SECURITY_ADMIN_PASSWORD: "mysecretpassword"
             GF_INSTALL_PLUGINS: "grafana-piechart-panel,grafana-clock-panel"
         volumes:
-            - "data:/var/lib/grafana"
+          - type: bind
+            source: /mnt/shared_data/grafana
+            target: /var/lib/grafana
         deploy:
             replicas: 1
             labels:
@@ -28,10 +30,3 @@ networks:
         external: true
     backend:
         external: true
-
-volumes:
-    data: 
-        driver: local-persist
-        driver_opts:
-            mountpoint: /mnt/shared_data/grafana
-

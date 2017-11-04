@@ -10,7 +10,9 @@ services:
         environment:
             INFLUXDB_ADMIN_ENABLED: "true"
         volumes:
-            - "influxdb-data:/var/lib/influxdb"
+          - type: bind
+            source: /mnt/shared_data/ltsdata/influxdb
+            target: /var/lib/influxdb
         deploy:
             replicas: 1
             resources:
@@ -22,10 +24,3 @@ services:
 networks:
     backend:
         external: true
-
-volumes:
-    influxdb-data: 
-        driver: local-persist
-        driver_opts:
-            mountpoint: /mnt/shared_data/ltsdata/influxdb
-
