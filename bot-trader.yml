@@ -2,6 +2,27 @@ version: "3.1"
 
 services:
 
+    botenv:
+        image: meetri/cryptocoin:latest
+        hostname: cryptotrader
+        networks:
+            - backend 
+        env_file:
+            - .env
+        environment:
+            INFLUXDB_HOST: "db_influxdb"
+            REDIS_HOST: "db_redis"
+            PGHOST: "db_postgresql"
+        volumes:
+            - "dev-data:/opt/dev"
+        deploy:
+            replicas: 1
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 512mb
+
+
     #this is technically all that's needed for the bot trader. Contains data for all markets
     #for redundancy, this is ran in a separate container from the order-scraper
     summary-scraper:
@@ -9,6 +30,8 @@ services:
         hostname: crypto-scraper
         networks:
             - backend 
+        env_file:
+            - .env
         environment:
             DEBUGMODE: "true"
             GET_MARKET_SUMMARY: "true"
@@ -21,9 +44,6 @@ services:
             REDIS_HOST: "db_redis"
             REDIS_PORT: 6379
             PGHOST: "db_postgresql"
-            PGPASSWORD: ${PGPASSWORD}
-            bittrex_key: ${BITTREX_KEY}
-            bittrex_secret: ${BITTREX_SECRET}
         deploy:
             replicas: 1
             resources:
@@ -38,6 +58,8 @@ services:
         hostname: crypto-scraper
         networks:
             - backend 
+        env_file:
+            - .env
         environment:
             DEBUGMODE: "true"
             GET_MARKET_ORDERS: "true"
@@ -45,14 +67,9 @@ services:
             JOB: "nodejs_websocket"
             FORCE_EXIT: 30
             QUEUE: "marketqueue"
-            TA_INTERVAL: 30000
-            INFLUXDB_HOST: "db_influxdb"
             REDIS_HOST: "db_redis"
             REDIS_PORT: 6379
             PGHOST: "db_postgresql"
-            PGPASSWORD: ${PGPASSWORD}
-            bittrex_key: ${BITTREX_KEY}
-            bittrex_secret: ${BITTREX_SECRET}
         deploy:
             replicas: 1
             resources:
@@ -67,6 +84,8 @@ services:
         hostname: crypto-scraper
         networks:
             - backend 
+        env_file:
+            - .env
         environment:
             JOB: "save_marketdata"
             QUEUE: "marketqueue"
@@ -76,9 +95,6 @@ services:
             REDIS_HOST: "db_redis"
             REDIS_PORT: 6379
             PGHOST: "db_postgresql"
-            PGPASSWORD: "abignewworld"
-            bittrex_key: ${BITTREX_KEY}
-            bittrex_secret: ${BITTREX_SECRET}
         deploy:
             replicas: 1
             resources:
@@ -90,4 +106,10 @@ services:
 networks:
     backend:
         external: true
+
+volumes:
+    dev-data: 
+        driver: local-persist
+        driver_opts:
+            mountpoint: /mnt/shared_data/devdata/
 

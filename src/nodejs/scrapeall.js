@@ -2,8 +2,8 @@ require('console-stamp')(console, '[HH:MM:ss.l]');
 
 var bittrex = require('node.bittrex.api');
 var redis = require("redis");
-const { Client } = require('pg')
-const client = new Client()
+// const { Client } = require('pg')
+// const client = new Client()
 
 var debugmode = process.env.DEBUGMODE || "true"
 var get_balance = process.env.POLL_BALANCE || "false"
@@ -109,10 +109,12 @@ if (get_market_orders == "true"){
                     mn = res['rows'][i].market_name;
                     marketlist.push(mn);
                 }
+                console.log(marketlist)
                 create_ws_marketorders(marketlist)
             }
         })
     }else {
+        console.log("scraping the following markets: " + market_list)
         create_ws_marketorders(market_list.split(" "))
     }
 
