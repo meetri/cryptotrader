@@ -1,4 +1,4 @@
-version: "3.1"
+version: "3.2"
 
 services:
 
@@ -14,7 +14,9 @@ services:
             REDIS_HOST: "db_redis"
             PGHOST: "db_postgresql"
         volumes:
-            - "dev-data:/opt/dev"
+            - type: bind
+              source: /mnt/shared_data/botenv
+              target: /opt/dev
         deploy:
             replicas: 1
             resources:
@@ -63,7 +65,7 @@ services:
         environment:
             DEBUGMODE: "true"
             GET_MARKET_ORDERS: "true"
-            MARKET_LIST: USDT-BTC USDT-ETH USDT-LTC USDT-XRP BTC-ETH BTC-XRP BTC-LTC 
+            MARKET_LIST: USDT-BTC USDT-ETH USDT-LTC USDT-XRP 
             JOB: "nodejs_websocket"
             FORCE_EXIT: 30
             QUEUE: "marketqueue"
@@ -89,8 +91,9 @@ services:
         environment:
             JOB: "save_marketdata"
             QUEUE: "marketqueue"
-            WORKERS: 10
+            WORKERS: 1
             TA_WORKERS: 0
+            MARKETLIST: USDT-BTC USDT-ETH USDT-LTC
             INFLUXDB_HOST: "db_influxdb"
             REDIS_HOST: "db_redis"
             REDIS_PORT: 6379
@@ -106,10 +109,3 @@ services:
 networks:
     backend:
         external: true
-
-volumes:
-    dev-data: 
-        driver: local-persist
-        driver_opts:
-            mountpoint: /mnt/shared_data/devdata/
-

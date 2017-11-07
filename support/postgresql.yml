@@ -22,8 +22,8 @@ services:
                 # reservations:
                     # cpus: "0.5"
                      #memory: 512mb
-            #placement:
-                #constraints: [node.role == manager]
+            placement:
+                constraints: [node.role == manager]
 
             
 networks:

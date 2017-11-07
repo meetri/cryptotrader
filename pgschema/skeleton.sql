@@ -1,10 +1,13 @@
 -- Table: markets.trades
 
--- DROP TABLE markets.trades;
+-- DROP DATABASE crypto;
+--CREATE DATABASE crypto;
+-- USE crypto;
+CREATE SCHEMA markets;
 
 CREATE TABLE markets.trades
 (
-    id integer NOT NULL DEFAULT nextval('markets.trades_id_seq1'::regclass),
+    id SERIAL,
     exchange character varying(20) COLLATE pg_catalog."default" NOT NULL,
     market character varying(20) COLLATE pg_catalog."default",
     quantity numeric,

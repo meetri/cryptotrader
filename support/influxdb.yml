@@ -10,15 +10,17 @@ services:
         environment:
             INFLUXDB_ADMIN_ENABLED: "true"
         volumes:
-          - type: bind
-            source: /mnt/shared_data/ltsdata/influxdb
-            target: /var/lib/influxdb
+            - type: bind
+              source: /mnt/shared_data/ltsdata/influxdb
+              target: /var/lib/influxdb
         deploy:
             replicas: 1
             resources:
                 limits:
                     cpus: "1"
                     memory: 1g
+            placement:
+                constraints: [node.role == manager]
 
             
 networks:

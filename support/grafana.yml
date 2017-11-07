@@ -10,7 +10,7 @@ services:
             - backend 
         environment:
             GF_SERVER_ROOT_URL: "http://db_influxdb"
-            GF_SECURITY_ADMIN_PASSWORD: "mysecretpassword"
+            GF_SECURITY_ADMIN_PASSWORD: "letsmakecoin"
             GF_INSTALL_PLUGINS: "grafana-piechart-panel,grafana-clock-panel"
         volumes:
           - type: bind
@@ -21,7 +21,7 @@ services:
             labels:
                 - "traefik.port=3000"
                 - "traefik.frontend.entryPoints=http"
-                - "traefik.frontend.rule=Host:grafana.docker.ptechtoolz.com"
+                - "traefik.frontend.rule=Host:grafana.docker.cryptotrader.int"
                 - "traefik.docker.network=afrontend"
 
             
