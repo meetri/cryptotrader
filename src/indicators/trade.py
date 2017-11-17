@@ -124,7 +124,8 @@ class Trade(object):
 
         ret = OrderedDict()
         ret["id"] = self.pkey
-        #ret["time"] = self.created_ts
+        if self.created_ts is not None:
+            ret["time"] = self.created_ts.strftime("%c")
         ret["assoc"] = self.meta.get("related_trade_id")
         ret["market"] = self.market
         ret["trade_type"] = details.get("Trade",self.trade_type)

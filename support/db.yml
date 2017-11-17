@@ -1,0 +1,84 @@
+version: "3.2"
+
+services:
+
+    redis:
+        image: redis:3.2.10
+        hostname: redis
+        networks:
+            - backend 
+        deploy:
+            replicas: 1
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 1g
+
+
+    influxdb:
+        image: influxdb:1.2.4
+        hostname: influxdb
+        networks:
+            - backend 
+        environment:
+            INFLUXDB_ADMIN_ENABLED: "true"
+        volumes:
+            - type: bind
+              source: /mnt/shared_data/cryptotrader/influxdb
+              target: /var/lib/influxdb
+        deploy:
+            replicas: 1
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 1g
+
+
+    postgresql:
+        image: postgres:9.6 
+        hostname: postgres
+        networks:
+            - backend 
+        env_file:
+            mysecrets.env
+        volumes:
+          - type: bind
+            source: /mnt/shared_data/cryptotrader/postgres
+            target: /var/lib/postgresql/data
+        deploy:
+            replicas: 1
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: 1g
+
+
+    grafana:
+        image: grafana/grafana:4.4.3
+        hostname: grafana
+        networks:
+            - afrontend
+            - backend 
+        env_file:
+            - mysecrets.env
+        environment:
+            GF_SERVER_ROOT_URL: "http://db_influxdb"
+            GF_INSTALL_PLUGINS: "grafana-piechart-panel,grafana-clock-panel"
+        volumes:
+          - type: bind
+            source: /mnt/shared_data/cryptotrader/grafana
+            target: /var/lib/grafana
+        deploy:
+            replicas: 1
+            labels:
+                - "traefik.port=3000"
+                - "traefik.frontend.entryPoints=http"
+                - "traefik.frontend.rule=Host:grafana.cryptotraderai.com"
+                - "traefik.docker.network=afrontend"
+
+            
+networks:
+    afrontend:
+        external: true
+    backend:
+        external: true

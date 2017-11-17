@@ -70,6 +70,7 @@ class SMA(object):
         res["analysis"]["signal"] = action
         res["analysis"]["sma"] = sma
         res["analysis"]["slope"] = slope
+        res["analysis"]["order"] = ["sma","slope"]
 
         return res
 

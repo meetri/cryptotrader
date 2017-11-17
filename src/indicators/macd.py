@@ -119,6 +119,7 @@ class MACD(object):
         res["analysis"]["m"] = macd_all[0][-1]
         res["analysis"]["s"] = macd_all[1][-1]
         res["analysis"]["h"] = macd_all[2][-1]
+        res["analysis"]["order"] = ["trend","trendlength","m","s","h"]
 
         return res
 

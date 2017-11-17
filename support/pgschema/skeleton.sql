@@ -1,7 +1,7 @@
 -- Table: markets.trades
 
 -- DROP DATABASE crypto;
---CREATE DATABASE crypto;
+CREATE DATABASE crypto;
 -- USE crypto;
 CREATE SCHEMA markets;
 

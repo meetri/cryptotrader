@@ -1,0 +1,21 @@
+<!doctype html>
+<html ng-app="app">
+  <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.6/angular.min.js"></script>
+    <script src="static/js/components.js"></script>
+    <script src="static/js/app.js"></script>
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.0.4/css/bootstrap-combined.min.css">
+  </head>
+{% raw %}
+<body>
+    <div ng-app="" ng-controller="botController">
+        <div>
+            <span>{{ bot.name }}</span>
+            <span>{{ bot.signal }}</span>
+            <span>{{ bot.last }}</span>
+            <span>{{ bot.time }}</span>
+        </div>
+    </div>
+</body>
+{% endraw %}
+</html>

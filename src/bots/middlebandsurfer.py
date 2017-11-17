@@ -83,5 +83,6 @@ class MiddleBandSurfer(BaseBot):
             "last": self.csdata["closed"][-1],
             "high": self.csdata["high"][-1],
             "low": self.csdata["low"][-1],
-            "time": time.strftime("%c")
+            "time": time.strftime("%c"),
+            "order": ["time","name","signal","cs","last","high","low"]
             })

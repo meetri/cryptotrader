@@ -99,5 +99,6 @@ class RSI(object):
         res["analysis"]["prev_trendlength"] = prev_trendObj["length"]
         #res["analysis"]["debug"] = "{},{},{},{},{}".format(self.data[-1],self.data[-2],self.data[-3],self.data[-4],self.data[-5])
         res["analysis"]["rsi"] = rsi
+        res["analysis"]["order"] = ["trend","trendlength","prev_trend","prev_trendlength","rsi"]
 
         return res

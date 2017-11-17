@@ -1,4 +1,4 @@
-import os,sys,logging,time
+import os,sys,logging,time,json
 from trader import Trader
 from wallet import Wallet
 from exchange import Exchange
@@ -228,6 +228,33 @@ class BaseBot(object):
     def get_results(self):
         return self.results
 
+    def get_trades(self):
+        tradelist = {
+                "long": [],
+                "shorts": []
+                }
+
+        for trade in self.trades:
+            if trade.trade_type == "buy":
+                tradelist["long"].append ( trade.details() )
+            else:
+                tradelist["shorts"].append ( trade.details() )
+
+        return json.dumps({
+            "trades" : tradelist,
+            })
+
+
+    def get_info(self, data = None):
+
+        if data == "trades":
+            return self.get_trades()
+        else:
+            return json.dumps({
+                "bot": self.results,
+                "indicators": self.indicators,
+                "debug" : self.debug
+                })
 
     def process(self):
         return self

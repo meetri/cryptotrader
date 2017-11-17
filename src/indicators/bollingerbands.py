@@ -95,6 +95,7 @@ class BBands(object):
         res["analysis"]["m"] = bbands["m"]
         res["analysis"]["l"] = bbands["l"]
         res["analysis"]["d"] = bbands["t"]-bbands["l"]
+        res["analysis"]["order"] = ["trend","slope","t","m","l","d"]
 
         return res
 

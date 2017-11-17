@@ -1,4 +1,4 @@
-import os,sys
+import os,sys,time
 
 from influxdb import InfluxDBClient
 from threading import Lock
@@ -11,6 +11,9 @@ class InfluxDbWrapper(object):
 
     def __init__(self):
         #print("init influxdb")
+        self.min_save_interval = 1
+        self.last_save_time = 0
+
         args = {
                 "host": os.getenv("INFLUXDB_HOST","localhost"),
                 "port": int(os.getenv("INFLUXDB_PORT","8086")),
@@ -50,6 +53,7 @@ class InfluxDbWrapper(object):
                 influx_data = self.data[group].copy()
                 del self.data[group][:len(influx_data)]
 
+            self.last_save_time = time.time()
             print("sending {} bulk elements to influxdb".format(len(influx_data)))
             try:
                 inf_res = self.getInfluxDb().write_points( influx_data )
@@ -62,7 +66,7 @@ class InfluxDbWrapper(object):
     def bulkAdd(self,item,group="marketdata"):
         self.data[group].extend([item])
         bulkAutoSaveCount = int(os.getenv("INFLUXDB_BULKSAVECOUNT","500"))
-        if self.getBulkSize() > bulkAutoSaveCount:
+        if self.getBulkSize() > bulkAutoSaveCount or time.time()-self.min_save_interval > self.last_save_time:
             self.bulkSave(group)
 
     def bulkAddAccountDetails(self,exchange,account):

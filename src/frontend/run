@@ -1,0 +1,6 @@
+#!/bin/bash
+port=$1
+port=${port:=5000}
+export FLASK_APP=index.py
+#exec flask run -h 0.0.0.0 -p $port --with-threads --no-reload
+exec flask run -h 0.0.0.0 -p $port --with-threads

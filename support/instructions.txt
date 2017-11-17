@@ -1,0 +1,31 @@
+create all directories needed for the docker bind mounts
+- /mnt/shared_data/traefik
+- /mnt/shared_data/grafana
+- /mnt/shared_data/ltsdata/pgdata
+- /mnt/shared_data/ltsdata/influxdb
+
+copy the traefik.topl to /mnt/shared_data/traefik
+
+start all services
+ - docker stack deploy -c traefik.yml service
+ - docker stack deploy -c influxdb.yml db
+ - docker stack deploy -c redis.yml db
+ - docker stack deploy -c postgres.yml db
+ - docker stack deploy -c grafana.yml web
+
+
+connect to the influxdb
+ - docker exec -it db_influxdb /bin/bash ( you'll have to do a docker ps to get the full name )
+ - influx
+ - CREATE DATABASE "crypto"
+ - USE crypto
+ - CREATE RETENTION POLICY "three_months" ON "crypto" DURATION 90d REPLICATION 1 DEFAULT
+
+
+connect to your grafana web instance
+- edit your /etc/hosts
+- add the ip of your docker server and the domain used in grafana config
+- connect to the grafana console with the selected domain
+- add the influxdb
+
+
