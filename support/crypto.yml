@@ -6,6 +6,7 @@ services:
         image: meetri/cryptocoin:latest
         hostname: cryptotrader
         networks:
+            - afrontend
             - backend 
         env_file:
             - mysecrets.env
@@ -13,6 +14,8 @@ services:
             INFLUXDB_HOST: "db_influxdb"
             REDIS_HOST: "db_redis"
             PGHOST: "db_postgresql"
+            LC_ALL: "en_US.utf-8"
+            LANG: "en_US.utf-8"
         volumes:
             - type: bind
               source: /mnt/shared_data/cryptotrader/botenv
@@ -25,6 +28,11 @@ services:
                     memory: 512mb
             placement:
                 constraints: [ node.role==manager ]
+            labels:
+                - "traefik.port=5000"
+                - "traefik.frontend.entryPoints=http"
+                - "traefik.frontend.rule=Host:viewer.cryptotraderai.com"
+                - "traefik.docker.network=afrontend"
 
 
     #this is technically all that's needed for the bot trader. Contains data for all markets
@@ -43,6 +51,7 @@ services:
             #force exit the container to refresh websocket connection
             FORCE_EXIT: 30
             QUEUE: "marketqueue"
+            MARKET_POLL_INTERVAL: 3000
             TA_INTERVAL: 30000
             INFLUXDB_HOST: "db_influxdb"
             REDIS_HOST: "db_redis"
@@ -109,5 +118,7 @@ services:
 
             
 networks:
+    afrontend:
+        external: true
     backend:
         external: true

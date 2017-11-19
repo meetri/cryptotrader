@@ -14,9 +14,9 @@ RUN mkdir /opt/build \
 && cd / \
 && rm -Rf /opt/build
 
-RUN yum install -y python34 python34-devel python34-pip \
+RUN yum install -y python34 python34-devel python34-pip tmux \
 && pip3 install --upgrade pip \
-&& pip3 install psycopg2 influxdb redis pg numpy ta-lib
+&& pip3 install psycopg2 influxdb redis pg numpy ta-lib flask pyyaml
 
 RUN rpm -ivh https://kojipkgs.fedoraproject.org//packages/http-parser/2.7.1/3.el7/x86_64/http-parser-2.7.1-3.el7.x86_64.rpm && yum -y install nodejs
 

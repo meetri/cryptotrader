@@ -16,6 +16,9 @@ var poll_market_summary = process.env.POLL_MARKET_SUMMARY || "false"
 var force_exit = process.env.FORCE_EXIT || 30
 var market_list = process.env.MARKET_LIST || ""
 
+var market_polling = false
+var market_polling_interval = 0
+
 var socket_count = 0
 var socket2_count = 0
 
@@ -29,11 +32,17 @@ bittrex.options({
 function create_ws_marketorders( marketlist ){
     console.log("subscribing to "+marketlist.length +" markets from marketlist")
     const websocketsclient = bittrex.websockets.subscribe(marketlist, function(data) {
-        blob = JSON.stringify(data)
-        chan.rpush(queuename, blob);
-        socket_count++;
-        if ( debugmode == "true" && (socket_count % 100 == 0) ){
-            console.log("marketlist websocket event count",socket_count)
+        if ( typeof data.unhandled_data != undefined ){
+            console.log("problem with bittrex socket api")
+        }else {
+            console.log("saving data...")
+            console.log(data)
+            blob = JSON.stringify(data)
+            chan.rpush(queuename, blob);
+            socket_count++;
+            if ( debugmode == "true" && (socket_count % 100 == 0) ){
+                console.log("marketlist websocket event count",socket_count)
+            }
         }
     });
 }
@@ -41,10 +50,25 @@ function create_ws_marketorders( marketlist ){
 function create_ws_marketsummary(){
     console.log("subscribing marketsummary feed")
     var websocketsclient2 = bittrex.websockets.listen( function(data) {
-        chan.rpush(queuename, JSON.stringify(data));
-        socket2_count++;
-        if ( debugmode == "true" && (socket2_count % 5 == 0) ){
-            console.log("summary websocket event count",socket2_count)
+        if ( typeof data.unhandled_data != undefined ){
+            console.log("Problem with marketsummary socket")
+            if ( market_polling != true ){
+                market_polling = true
+                console.log("enabled marketsummary backup polling")
+                market_polling_interval = setInterval( getMarketSummaries, get_market_poll_interval )
+            }
+            //poll_market_summary = true
+        }else {
+            if ( market_polling == true ){
+                market_polling = false
+                clearInterval( market_polling_interval )
+                console.log("websocket re-enabled polling halted")
+            }
+            chan.rpush(queuename, JSON.stringify(data));
+            socket2_count++;
+            if ( debugmode == "true" && (socket2_count % 5 == 0) ){
+                console.log("summary websocket event count",socket2_count)
+            }
         }
     });
 }
@@ -63,16 +87,15 @@ function getBalances(){
 }
 
 function getMarketSummaries() {
-	console.log("get market summaries")
 	bittrex.getmarketsummaries( function( data, err ) {
 		if ( err ){
 			console.error("problem getting market summaries",err)
 		}else {
-
-			if ( data !== true && data.length > 3 ){
-				blob = { "M":"updateSummaryState", "A": [{"Deltas": data}] }
-				chan.rpush(queuename, JSON.stringify(blob));
-			}
+            if ( data.success && data.result.length > 0 ){
+                console.log("get market summaries for " + data.result.length + " markets")
+                blob = { "M":"updateSummaryState", "A": [{"Deltas": data.result}] }
+                chan.rpush(queuename, JSON.stringify(blob));
+            }
 		}
 	});
 }
@@ -93,12 +116,14 @@ if ( get_balance == "true" ){
 }
 
 if ( poll_market_summary == "true") {
-    setInterval( getMarketSummaries, get_market_poll_interval )
+    console.log("xenabled marketsummary backup polling")
+    market_polling = true
+    market_polling_interval = setInterval( getMarketSummaries, get_market_poll_interval )
 }
 
 marketlist = []
-if (get_market_orders == "true"){
-
+if (get_market_orders == "true" ){
+    console.log("get market orders enabled")
     if ( market_list.length == 0 ){
         client.connect()
         client.query("SELECT market_name FROM markets.marketlist WHERE enabled=true", (err, res) => {
