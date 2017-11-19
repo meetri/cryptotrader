@@ -1,35 +1,54 @@
-import os,sys,talib,numpy,math,logging
+import os,sys,talib,numpy,math,logging,time,datetime,numbers
 from collections import OrderedDict
 
-class SMA(object):
+from baseindicator import BaseIndicator
+
+class SMA(BaseIndicator):
 
 
     def __init__(self,csdata, period = 30,label = "sma"):
 
-        self.log = logging.getLogger('crypto')
-        #macd settings
+        BaseIndicator.__init__(self,csdata,label,{"period":period})
+
+        #TODO Remove this
         self.period = period
-        #candlestick data
-        self.csdata = csdata
-        self.label = label
 
         self.data = self.get_sma()
+        self.analysis = None
 
 
     def get_settings(self):
         return "{}".format(self.period)
 
+    def get_charts(self):
+        data = []
+        for i in range(0,len(self.csdata["closed"])):
+            if isinstance(self.data[i],numbers.Number) and self.data[i] > 0:
+                ts = time.mktime(datetime.datetime.strptime(self.csdata["time"][i], "%Y-%m-%dT%H:%M:%SZ").timetuple())
+                data.append({
+                    "x": ts,
+                    "y": self.data[i],
+                    })
 
-    def get_name(self):
-        return self.label
+        return [{
+                "key": "{}:{}".format(self.label,self.period),
+                "type": "line",
+                "color": "#FFF5EE",
+                "yAxis": 1,
+                "values": data
+                }]
 
 
     def get_sma(self):
         if self.csdata is not None:
             try:
-                self.data = talib.SMA(self.csdata["closed"], self.period )
+                sclosed = self.scaleup( self.csdata["closed"])
+                data = talib.SMA( numpy.array(sclosed), self.period )
+                self.data = self.scaledown(data)
+                # scaledown
             except Exception as ex:
                 self.data = None
+                raise ex
 
         return self.data
 
@@ -70,7 +89,15 @@ class SMA(object):
         res["analysis"]["signal"] = action
         res["analysis"]["sma"] = sma
         res["analysis"]["slope"] = slope
-        res["analysis"]["order"] = ["sma","slope"]
+        res["analysis"]["order"] = ["sma"]
 
+        self.analysis = res
         return res
+
+    def format_view(self):
+        newres = dict(self.analysis["analysis"])
+        newres["slope"] = "{:.4f}".format(newres["slope"])
+        newres["sma"] = "{:.8f}".format(newres["sma"])
+
+        return newres
 

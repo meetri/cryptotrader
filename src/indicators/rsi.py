@@ -1,4 +1,4 @@
-import os,sys,talib,numpy,math,logging
+import os,sys,talib,numpy,math,logging,numbers,time,datetime
 from collections import OrderedDict
 
 class RSI(object):
@@ -15,6 +15,29 @@ class RSI(object):
         self.label = label
 
         self.data = self.calc_value()
+        self.analysis = None
+
+    def get_data(self):
+        return data
+
+    def get_charts(self):
+        data = []
+        for i in range(0,len(self.csdata["closed"])):
+            if isinstance(self.data[i],numbers.Number) and self.data[i] > 0:
+                ts = time.mktime(datetime.datetime.strptime(self.csdata["time"][i], "%Y-%m-%dT%H:%M:%SZ").timetuple())
+                data.append({
+                    "x": ts,
+                    "y": self.data[i],
+                    })
+
+        return [{
+                "key": "{}:{}".format(self.label,self.period),
+                "type": "line",
+                "color": "#555555",
+                "yAxis": 2,
+                "values": data
+                }]
+
 
     def get_settings(self):
         return "{}:{}:{}".format(self.period,self.overbought,self.oversold)
@@ -99,6 +122,12 @@ class RSI(object):
         res["analysis"]["prev_trendlength"] = prev_trendObj["length"]
         #res["analysis"]["debug"] = "{},{},{},{},{}".format(self.data[-1],self.data[-2],self.data[-3],self.data[-4],self.data[-5])
         res["analysis"]["rsi"] = rsi
-        res["analysis"]["order"] = ["trend","trendlength","prev_trend","prev_trendlength","rsi"]
+        res["analysis"]["order"] = ["rsi"]
 
+        self.analysis = res
         return res
+
+    def format_view(self):
+        newres = dict(self.analysis["analysis"])
+        newres["rsi"] = "{:.2f}".format(newres["rsi"])
+        return newres

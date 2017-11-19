@@ -1,6 +1,98 @@
-body {
-  background-color: #000;
-  color:#FFF;
-  font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif"
+/*
+.nvd3.nv-candlestickBar .nv-ticks .nv-tick.negative rect {
+	stroke: #3333EE;
+    fill: #9999FF;
+}*/
+
+.nvd3 .nv-axis  text {
+	fill: #A9A9A9;
 }
+
+.nvtooltip {
+    background: #111;
+}
+
+.nvtooltip h3 {
+    font-size: 0.8rem;
+}
+
+.nvd3.nv-candlestickBar .nv-ticks g.nv-tick line {
+	stroke: #666
+}
+
+.nvd3 g.nv-axis line {
+	stroke:#333;
+}
+
+.topnav {
+	/*background-color:#000;
+    color: #AEAEAE;*/
+    font-size: 0.9rem;
+    border-bottom: 1px solid #333;
+    padding: 0.3rem;
+    margin-bottom: 1rem;
+}
+
+.navitem {
+    color: #6BF;
+    margin-right: 0.2rem;
+}
+
+.smallitem {
+    color: #6BF;
+    font-size: 0.8rem;
+    margin-right: 0.5rem;
+    padding-right: 0.3rem;
+    border-right: 1px solid #333;
+}
+
+[animate-on-change] {
+  transition: all 1s;
+  -webkit-transition: all 1s;
+}
+
+[animate-on-change].overbought{
+  color: green;
+  transition: none;
+  -webkit-transition: none;
+}
+
+[animate-on-change].isup{
+  color: green;
+  transition: none;
+  -webkit-transition: none;
+}
+
+[animate-on-change].isdown{
+  color: red;
+  transition: none;
+  -webkit-transition: none;
+}
+
+[animate-on-change].oversold{
+  color: red;
+  transition: none;
+  -webkit-transition: none;
+}
+
+[animate-on-change].goneup{
+  background-color: green;
+  transition: none;
+  -webkit-transition: none;
+}
+
+[animate-on-change].gonedown{
+  background-color: red;
+  transition: none;
+  -webkit-transition: none;
+}
+
+[animate-on-change].changed {
+  background-color: #333;
+  transition: none;
+  -webkit-transition: none;
+}
+ 
+
+
 

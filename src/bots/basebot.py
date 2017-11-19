@@ -1,4 +1,4 @@
-import os,sys,logging,time,json
+import os,sys,logging,time,json,datetime
 from trader import Trader
 from wallet import Wallet
 from exchange import Exchange
@@ -7,6 +7,7 @@ from trade import Trade
 class BaseBot(object):
 
     def __init__(self, market, name = None ):
+        self.debugmode = True
         self.log = logging.getLogger('crypto')
         self.indicators = []
         self.market = market
@@ -63,7 +64,7 @@ class BaseBot(object):
         return self.debug
 
     def load_active_trades(self):
-        self.trades = Trade.load_by_manager(self.name)
+        self.trades = Trade.load_by_manager(self.name,self.market)
         self.log.info("loading active trades, found: {}".format(len(self.trades)))
 
     def find_trade_by_id(self,idx):
@@ -136,7 +137,7 @@ class BaseBot(object):
 
         if self.signal == "overbought":
             for trade in self.trades:
-                if trade.forsale(last,minbuy=False):
+                if self.debugmode or trade.forsale(last,minbuy=False):
                     trade_type = "sell"
                     if sell_trade:
                         if trade.details()["change"] > sell_trade.details()["change"]:
@@ -228,6 +229,50 @@ class BaseBot(object):
     def get_results(self):
         return self.results
 
+
+    def get_tacharts(self):
+        allcharts = []
+
+        for i in self.indicators:
+            chart = i["object"].get_charts()
+            for chart in i["object"].get_charts():
+                if chart is not None:
+                    allcharts.append(chart)
+
+        pricechart = { "color":"#6BF","key": "Price", "type": "line", "yAxis": 1, "values": [] }
+        for i in range(0,len(self.csdata["closed"])):
+            ts = time.mktime(datetime.datetime.strptime(self.csdata["time"][i], "%Y-%m-%dT%H:%M:%SZ").timetuple())
+            if self.csdata["closed"][i] > 0:
+                pricechart["values"].append({
+                    "x": ts,
+                    "y": self.csdata["closed"][i]
+                })
+
+        allcharts.append(pricechart)
+
+        return json.dumps(allcharts)
+
+
+    def get_chart(self):
+        fullchart = []
+        chart_corrected = 0
+        for i in range(0,len(self.csdata["open"])):
+            ts = time.mktime(datetime.datetime.strptime(self.csdata["time"][i], "%Y-%m-%dT%H:%M:%SZ").timetuple())
+            if self.csdata["open"][i] > 0:
+                fullchart.append({
+                    "date": ts,
+                    "open": self.csdata["open"][i],
+                    "close": self.csdata["closed"][i],
+                    "high": self.csdata["high"][i],
+                    "low": self.csdata["low"][i],
+                    "volume": self.csdata["volume"][i],
+                    "adjusted": 0,
+                    })
+            else:
+                chart_corrected += 1
+
+        return json.dumps( [{ "errors": chart_corrected,"values" : fullchart }])
+
     def get_trades(self):
         tradelist = {
                 "long": [],
@@ -247,12 +292,28 @@ class BaseBot(object):
 
     def get_info(self, data = None):
 
-        if data == "trades":
+        if data == "chart":
+            return self.get_chart()
+        elif data == "tacharts":
+            return self.get_tacharts()
+        elif data == "trades":
             return self.get_trades()
         else:
+
+            indicators = []
+            for i in self.indicators:
+                indicators.append(i["object"].format_view())
+
+            botinfo = dict(self.results)
+            botinfo["name"] = self.name
+            botinfo["market"] = self.market
+            botinfo["min_trade_freq"] = self.minimum_trade_frequency
+            botinfo["max_active_trades"] = self.max_ongoing_trades
+            botinfo["max_trade_quantity"] = self.trade_quantity
+
             return json.dumps({
-                "bot": self.results,
-                "indicators": self.indicators,
+                "bot": botinfo,
+                "indicators": indicators,
                 "debug" : self.debug
                 })
 

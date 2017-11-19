@@ -242,10 +242,10 @@ class Trade(object):
         return newTrades
 
     @staticmethod
-    def load_by_manager(manager, active = True):
+    def load_by_manager(manager, market, active = True):
         pg = PgPool.getInstance()
         cur = pg.get_dict_cursor()
-        cur.execute("""SELECT * FROM markets.trades WHERE managed_by=%s and active=%s """,[manager,active])
+        cur.execute("""SELECT * FROM markets.trades WHERE managed_by=%s and market=%s and active=%s """,[manager,market,active])
         res = cur.fetchall()
         cur.close()
 

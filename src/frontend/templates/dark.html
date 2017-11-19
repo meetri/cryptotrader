@@ -1,0 +1,115 @@
+<!doctype html>
+<html>
+  <head>
+
+      <!--
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+    -->
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.6/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.6/angular-animate.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.6/angular-aria.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.6/angular-messages.min.js"></script>
+
+	<script src="static/bower_components/d3/d3.js"></script>
+	<script src="static/bower_components/nvd3/build/nv.d3.js"></script> <!-- or use another assembly -->
+	<script src="static/bower_components/angular-nvd3/dist/angular-nvd3.js"></script>
+
+
+    <script src="static/js/ui-bootstrap.js"></script>
+
+    <!-- Angular Material Library -->
+    <!--
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.4/angular-material.min.js"></script>
+    <script src="static/js/ui-bootstrap.js"></script>
+    -->
+    <script src="static/js/components.js"></script>
+    <script src="static/js/app.js"></script>
+
+<!--
+-->
+	<link rel="stylesheet" href="static/bower_components/nvd3/build/nv.d3.css">
+    <link rel="stylesheet" href="https://bootswatch.com/4/slate/bootstrap.min.css">
+    <link rel="stylesheet" href="static/css/crypto.css">
+<!--
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://bootswatch.com/4/cyborg/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://bootswatch.com/4/cyborg/bootstrap.min.css">
+    <link rel="stylesheet" href="https://bootswatch.com/4/darkly/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static/css/ui-bootstrap-csp.css">
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.4/angular-material.min.css">
+-->
+
+  </head>
+{% raw %}
+<body ng-app="cryptoai" ng-controller="botController" style='background-color:#101010'>
+
+	<div class='container-fluid'>
+        <div class="row topnav">
+            <span class='navitem' style='margin-right:2rem;'>{{bot['name']}}</span>
+            <span class='navitem' style='margin-right:2rem;'>{{bot['market']}}</span>
+            <span class='navitem'>Signal</span> <span animate-on-change="bot['signal']" style='margin-right:2rem;'>{{bot['signal']}}</span>
+            <span class='navitem'>Candlesize</span> <span style='margin-right:2rem;'>{{bot['cs']}}</span>
+            <span class='navitem'>Last</span> <span animate-on-change="bot['last']" style='margin-right:2rem;'>{{bot['last']}}</span>
+            <span class='smallitem'>Max Trade Qty: {{bot['max_trade_quantity']}}</span>
+            <span class='smallitem'>Min Trade Freq: {{bot['min_trade_freq']}}</span>
+            <span class='smallitem'>{{bot['cs']}} Candles</span>
+            <span animate-on-change="bot['time']" class="text-right">{{bot['time']}}</span>
+        </div>
+        <div class="row">
+            <div class="col-sm-8">
+                <h5>Indicators</h5>
+                <table class="table table-striped table-bordered table-condensed">
+                    <thead><tr> <th>Name</th> <th>Signal</th><th>Trend</th><th>Details</th> </tr></thead>
+                <tbody>
+                <tr ng-repeat="indicator in indicators">
+                    <td>{{indicator['name']}}</td>	
+                    <td>{{indicator['signal']}}</td>	
+                    <td>{{indicator['trend']}}</td>	
+                    <td><span style='margin-right:4px'x ng-repeat="key in indicator.order"><span class='navitem'>{{key}}:</span> <span class=''>{{indicator[key]}}</span></td>
+                </tr> </tbody> </table>
+                <h5>Technical Analysis Charts</h5>
+                <div ng-controller="tacharts">
+					<nvd3 options="options" config="config" data="data"></nvd3>
+                </div>
+                <h5>Candlesticks</h5>
+                <div ng-controller="candlestickBarChartCtrl">
+					<nvd3 options="options" config="config" data="data"></nvd3>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <h5>Logs</h5>
+                <table class='table table-bordered table-condensed table-striped'>
+                    <tbody>
+                        <tr ng-repeat="msg in logs"><td>{{msg}}</td></tr>
+                    </tbody>
+                </table>
+                <div class="row">
+                    <h5>Longs</h5>
+                    <table class="table table-inversei table-bordered">
+                    <thead>
+                        <th ng-repeat="key in tradeFields">
+                            {{key}}
+                        </th>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="trade in trades['long']">
+                        <td ng-repeat="key in tradeFields">{{trade[key]}} </td>
+                    </tr> 
+                    </tbody> </table>
+                </div>
+                <div class="row">
+                    <h5>Shorts</h5>
+                </div>
+            </div>
+        </div>
+    </div><!-- /.container -->
+
+</body>
+{% endraw %}
+</html>

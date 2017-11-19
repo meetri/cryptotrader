@@ -13,3 +13,17 @@ crypto-bots:
         max_trade_qty: 0.01
         min_trade_freq: 300
         max_trades: 10
+
+    adx-scraper:
+        market: BTC-ADX
+        trade_price_gap: 0.0
+        max_trade_qty: 5
+        min_trade_freq: 300
+        max_trades: 5
+
+    cvc-scraper:
+        market: BTC-CVC
+        trade_price_gap: 0.0
+        max_trade_qty: 5
+        min_trade_freq: 300
+        max_trades: 5

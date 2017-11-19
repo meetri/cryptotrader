@@ -19,6 +19,8 @@ class MACD(object):
         self.csdata = csdata
 
         self.data = self.get_macd()
+        self.analysis = None
+
 
 
     def get_settings(self):
@@ -28,6 +30,8 @@ class MACD(object):
     def get_name(self):
         return self.label
 
+    def get_charts(self):
+        return []
 
     def get_macd(self):
         if self.csdata is not None:
@@ -65,7 +69,7 @@ class MACD(object):
                 }
 
 
-    def get_macd_analysis(self ):
+    def get_analysis(self ):
         if self.data is None:
             self.get_macd()
 
@@ -116,10 +120,19 @@ class MACD(object):
         res["analysis"]["signal"] = action
         res["analysis"]["trend"] = tdata["trend"]
         res["analysis"]["trendlength"] = tdata["length"]
-        res["analysis"]["m"] = macd_all[0][-1]
-        res["analysis"]["s"] = macd_all[1][-1]
-        res["analysis"]["h"] = macd_all[2][-1]
-        res["analysis"]["order"] = ["trend","trendlength","m","s","h"]
+        res["analysis"]["macd"] = macd_all[0][-1]
+        res["analysis"]["sig"] = macd_all[1][-1]
+        res["analysis"]["history"] = macd_all[2][-1]
+        res["analysis"]["order"] = ["macd","sig","history"]
 
+        self.analysis = res
         return res
+
+    def format_view(self):
+        newres = dict(self.analysis["analysis"])
+        newres["macd"] = "{:.12f}".format(newres["macd"])
+        newres["sig"] = "{:.12f}".format(newres["sig"])
+        newres["history"] = "{:.12f}".format(newres["history"])
+
+        return newres
 

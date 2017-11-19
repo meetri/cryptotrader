@@ -132,7 +132,7 @@ class HoldingMonitor(object):
             for indicator in self.indicators:
                 if indicator == "macd":
                     macd = MACD(self.cs)
-                    ret["macd"] = macd.get_macd_analysis(data)
+                    ret["macd"] = macd.get_analysis(data)
                 elif indicator == "bbands":
                     bb = BBands(self.cs,timeperiod=20,nbdevup=2, nbdevdn=2)
                     ret["bbands"] = bb.get_analysis(data)

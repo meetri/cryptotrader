@@ -167,6 +167,7 @@ class Trader(object):
         points = self.influxdb.raw_query("""select FIRST(last) as open, LAST(last) as closed, MAX(last) as high, MIN(last) as low, (LAST(basevolume)+LAST(volume)) as volume FROM "market_summary" WHERE marketname='{}' and time > now() - {} group by time({})""".format(self.market,timeframe,size)).get_points()
 
         cs = self.clear_candlesticks()
+
         for point in points:
             cs["low"].extend([point["low"]])
             cs["high"].extend([point["high"]])
@@ -174,7 +175,6 @@ class Trader(object):
             cs["open"].extend([point["open"]])
             cs["volume"].extend([point["volume"]])
             cs["time"].extend([point["time"]])
-
 
         def fix_gaps(lst):
             for idx,val in enumerate(lst):
@@ -190,6 +190,7 @@ class Trader(object):
         fix_gaps(cs["open"])
         fix_gaps(cs["volume"])
         fix_gaps(cs["time"])
+
 
         self.cs = {
                 "low": numpy.array(cs["low"]),

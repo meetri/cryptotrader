@@ -1,0 +1,25 @@
+{
+  "name": "crypto",
+  "homepage": "https://github.com/meetri/cryptotrader",
+  "authors": [
+    "demetrius bell <meetri@gmail.com>"
+  ],
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "d3": "^4.11.0",
+    "nvd3": "^1.8.6"
+  },
+  "resolutions": {
+    "d3": "^3.4.4"
+  }
+}

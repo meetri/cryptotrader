@@ -23,8 +23,8 @@ def load(fn):
         except Exception as ex:
             logger.error(ex)
 
-
-config = BotTools.get_bot_config("mybots.yaml","btc-scraper")
+botsel = os.getenv("bot","btc-scraper")
+config = BotTools.get_bot_config("mybots.yaml",botsel)
 if config is None:
     print("unable to find config for {}".format(botname))
 

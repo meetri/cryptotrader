@@ -25,11 +25,13 @@ class Analyzer(object):
 
         self.options = {}
 
+    def get_indicators(self):
+        return self.indicators
 
     def add_indicator(self, indicator, options = {}, label = None ):
         if label is None:
             label = indicator
-        self.indicators += [{"indicator":indicator,"label":label,"options":options}]
+        self.indicators += [{"indicator":indicator,"label":label,"options":options,"object":None}]
 
 
     def process(self):
@@ -43,19 +45,6 @@ class Analyzer(object):
             if v < atl:
                 atl = v
 
-        """
-        ret = OrderedDict({
-                "price" : {
-                        "count": 0,
-                        "last" : self.cs["closed"][-1],
-                        "open": self.cs["open"][-1],
-                        "HIGH": ath,
-                        "LOW": atl,
-                        "time": self.cs["time"][-1],
-                    }
-                })#
-        """
-
         ret ={}
 
         for indicatorObj in self.indicators:
@@ -68,15 +57,19 @@ class Analyzer(object):
 
             if indicator == "macd":
                 macd = MACD(self.cs)
-                ret[label] = macd.get_macd_analysis()
+                indicatorObj["object"] = macd
+                ret[label] = macd.get_analysis()
             elif indicator == "bbands":
                 bb = BBands(self.cs,**options)
+                indicatorObj["object"] = bb
                 ret[label] = bb.get_analysis()
             elif indicator == "sma":
                 sma = SMA(self.cs,**options)
+                indicatorObj["object"] = sma
                 ret[label] = sma.get_analysis()
             elif indicator == "rsi":
                 rsi = RSI(self.cs,**options)
+                indicatorObj["object"] = rsi
                 ret[label] = rsi.get_analysis()
 
         return ret

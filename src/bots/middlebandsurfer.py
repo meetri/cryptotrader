@@ -23,6 +23,7 @@ class MiddleBandSurfer(BaseBot):
         the price higher for the ideal sell
         """
 
+
         self.csdata = self.trader.get_candlesticks("24h","5m")
         analyzer = Analyzer( self.csdata )
 
@@ -41,36 +42,38 @@ class MiddleBandSurfer(BaseBot):
         rsi = idata["rsi"]["analysis"]
         rsi2 = idata["rsi2"]["analysis"]
         sma = idata["sma"]["analysis"]
-        self.indicators = [macd,bbands,bbands1,sma,rsi,rsi2]
+        #self.indicators = [macd,bbands,bbands1,sma,rsi,rsi2]
+        self.indicators = analyzer.get_indicators()
 
         self.signal = None
 
         debug = []
         #if bbands["slope"] > 1 and bbands["d"] > 35:
-        if bbands["d"] > 25:
-            debug += ["A[{}]:buy  when: l:{} < mb:{} & rsi = os/{} ( {} )".format(self.counter["a"],self.csdata["low"][-1],bbands["m"],rsi["signal"],rsi["rsi"])]
-            debug += ["B[{}]:sell when: c:{} > tb:{} & rsi = os/{} ( {} )".format(self.counter["b"],self.csdata["closed"][-1],bbands["t"],rsi["signal"],rsi["rsi"])]
-            debug += ["C[{}]:sell when: h:{} > tb:{} & rsi = ob/{} ( {} )".format(self.counter["c"],self.csdata["high"][-1],bbands["t"],rsi["signal"],rsi["rsi"])]
-            debug += ["D[{}]:sell when: h:{} > mb:{} & rsi = ob/{} ( {} )".format(self.counter["d"],self.csdata["high"][-1],bbands["m"],rsi["signal"],rsi["rsi"])]
-            if self.csdata["low"][-1] < bbands["m"] and rsi["signal"] == "oversold":
+        #if bbands["width"] > 25:
+        if True:
+            debug += ["A[{}]:buy  when: l:{} < mb:{} & rsi = os/{} ( {} )".format(self.counter["a"],self.csdata["low"][-1],bbands["mid"],rsi["signal"],rsi["rsi"])]
+            debug += ["B[{}]:sell when: c:{} > tb:{} & rsi = os/{} ( {} )".format(self.counter["b"],self.csdata["closed"][-1],bbands["top"],rsi["signal"],rsi["rsi"])]
+            debug += ["C[{}]:sell when: h:{} > tb:{} & rsi = ob/{} ( {} )".format(self.counter["c"],self.csdata["high"][-1],bbands["top"],rsi["signal"],rsi["rsi"])]
+            debug += ["D[{}]:sell when: h:{} > mb:{} & rsi = ob/{} ( {} )".format(self.counter["d"],self.csdata["high"][-1],bbands["mid"],rsi["signal"],rsi["rsi"])]
+            if self.csdata["low"][-1] < bbands["mid"] and rsi["signal"] == "oversold":
                 self.counter["a"] += 1
                 self.signal = "oversold"
                 debug += ["trigger buy rule A"]
-            elif self.csdata["closed"][-1] > bbands["t"] and rsi["signal"] == "overbought":
+            elif self.csdata["closed"][-1] > bbands["top"] and rsi["signal"] == "overbought":
                 self.counter["b"] += 1
                 self.signal = "overbought"
                 self.order_type = "trailing"
                 debug += ["trigger sell rule B using trailing algo"]
-            elif self.csdata["high"][-1] > bbands["t"] and rsi["signal"] == "overbought":
+            elif self.csdata["high"][-1] > bbands["top"] and rsi["signal"] == "overbought":
                 self.counter["c"] += 1
                 self.signal = "overbought"
                 debug += ["trigger sell rule C"]
-            elif self.csdata["high"][-1] > bbands["m"] and rsi["signal"] == "overbought":
+            elif self.csdata["high"][-1] > bbands["mid"] and rsi["signal"] == "overbought":
                 self.counter["d"] += 1
                 self.signal = "overbought"
                 debug += ["trigger sell rule D"]
         else:
-            debug += ["bbands {} channel is too thin to trade in".format(bbands["d"])]
+            debug += ["bbands {} channel is too thin to trade in".format(bbands["width"])]
 
         self.debug = debug
 
