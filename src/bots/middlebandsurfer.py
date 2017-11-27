@@ -79,6 +79,29 @@ class MiddleBandSurfer(BaseBot):
             messages.append("setting below center")
 
 
+        #TODO adjust this logic based on trend slope determined by a SMA
+
+        #self.checkSignal("rsi","oversold",60) is not None
+        if rsi.isOversold():
+            if dband.enteringLowerOuterBand():
+                self.pushSignal("lowband","buy",75)
+
+            if dband.enteringLowerBand():
+                self.pushSignal("lowband","buy",50)
+
+            if dband.risingAboveCenter():
+                self.pushSignal("midband","buy",25)
+
+
+        #self.checkSignal("rsi","overbought",60) is not None
+        if rsi.isOverbought():
+            if dband.enteringUpperBand():
+                self.pushSignal("upperband","sell",50)
+
+            if dband.enteringOuterUpperBand():
+                self.pushSignal("upperband","sell",75)
+
+        """
         #check if price goes below the lower band
         if ( self.analyzer.last("closed") < bbands.low() and
                 self.checkSignal("rsi","oversold",60) is not None ):
@@ -90,6 +113,7 @@ class MiddleBandSurfer(BaseBot):
                 self.checkSignal("rsi","overbought",60) is not None ):
             messages.append("sell signal triggered")
             self.pushSignal("bbandHigh","sell",50)
+        """
 
 
         if messages:
