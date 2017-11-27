@@ -13,6 +13,9 @@ See docker swarm-mode compose configs.
 I basically run my bot in a tmux session on the cloud somewhere. Currently it outputs directly to the terminal. 
 ( see screenshot )
 
+- Now has a pretty snazy frontend to visualize bot operations
+( see screenshot )
+
 TODO:
 - [x] build scraper to gather data into influxdb for visualization in grafana
 - [x] build TA framework using TA-lib and log in influxdb for visualization in grafana
@@ -20,6 +23,8 @@ TODO:
 - [x] build trade management system to keep track of and manage trades ( work-in-progress )
 - [x] add dockerfile and docker compose for dependencies
 - [x] add db schema and skeleton data to repo
+- [x] added angularjs based frontend  
+- [x] added backtesting capabilities
 - [ ] clean up code ( lots of old code needs to be removed... )
 - [ ] create setup script
 - [ ] log trade triggers in influxdb to be visualized in grafana
