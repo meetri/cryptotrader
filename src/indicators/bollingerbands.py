@@ -6,7 +6,7 @@ from baseindicator import BaseIndicator
 class BBands(BaseIndicator):
 
 
-    def __init__(self,csdata, timeperiod=5, nbdevup=2, nbdevdn=2, matype=0,label = "bbands"):
+    def __init__(self,csdata, timeperiod=5, nbdevup=2, nbdevdn=2, matype=0,label = "bbands", chartcolors = ["#FF0000","#00FF00","#0000FF"] ):
 
         BaseIndicator.__init__(self,csdata,label,{"timeperiod":timeperiod,"nbdevup":nbdevup,"nbdevdn":nbdevdn,"matype":matype})
 
@@ -15,27 +15,43 @@ class BBands(BaseIndicator):
         self.nbdevdn = nbdevdn
         self.matype = matype
 
+        self.chartcolors = chartcolors
+
         self.get_bb()
+
+
+    def top(self,index=1):
+        index = index * -1
+        return self.data[0][index]
+
+    def middle(self,index=1):
+        index = index * -1
+        return self.data[1][index]
+
+    def low(self,index=1):
+        index = index * -1
+        return self.data[2][index]
 
     def get_settings(self):
         return "{}:{}:{}".format(self.timeperiod,self.nbdevup,self.nbdevdn)
 
 
     def get_charts(self):
+
         allcharts = []
-        label = ["top","middle","lower"]
-        color = ["#7CFC00","#F0E68C","#F08080"]
+        label = ["top{}".format(self.label),"mid{}".format(self.label),"low{}".format(self.label)]
+        color = self.chartcolors
         data = [[],[],[]]
         for i in range(0,len(self.csdata["closed"])):
             if isinstance(self.data[0][i],numbers.Number) and self.data[0][i] > 0:
-                for j in range(0,2):
+                for j in range(0,3):
                     ts = time.mktime(datetime.datetime.strptime(self.csdata["time"][i], "%Y-%m-%dT%H:%M:%SZ").timetuple())
                     data[j].append({ "x": ts, "y": self.data[j][i] })
 
         for i in range(0,len(data)):
             chart = data[i]
             allcharts.append({
-                "key": "{}:{}:{}:{}:{}".format(self.label,self.timeperiod,self.nbdevup,self.nbdevdn,label[i]),
+                "key": "{}".format(label[i]),
                 "type": "line",
                 "color": color[i],
                 "yAxis": 1,

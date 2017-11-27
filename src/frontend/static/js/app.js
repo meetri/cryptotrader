@@ -57,9 +57,11 @@ angular.module('cryptoai', ['nvd3','components'])
 })
 
 .controller('tacharts', function($scope,$http,$timeout,$location){
+
 	$scope.options = {
 		chart: {
 			type: 'multiChart',
+      showLegend: true,
 			height: 450,
 			margin : {
 				top: 30,
@@ -84,10 +86,76 @@ angular.module('cryptoai', ['nvd3','components'])
 				},
 				showMaxMin: false
 			},
+      yDomain2: [0,300],
 			yAxis2: {
 				tickFormat: function(d){
 					return d3.format(',.1f')(d);
 				}
+			}
+		}
+	};
+
+	$scope.options2 = {
+		chart: {
+			type: 'multiChart',
+      showLegend: true,
+			height: 200,
+			margin : {
+				top: 30,
+				right: 60,
+				bottom: 50,
+				left: 70
+			},
+			color: d3.scale.category10().range(),
+			//useInteractiveGuideline: true,
+			transitionDuration: 500,
+			xAxis: {
+				axisLabel: 'Dates',
+				tickFormat: function(d) {
+					return d3.time.format('%x')(new Date( d * 1000 ));
+				},
+				showMaxMin: true
+			},
+			yAxis1: {
+				axisLabel: 'Axis1',
+				showMaxMin: true
+			},
+      yDomain2: [0,100],
+			yAxis2: {
+				axisLabel: 'Axis2',
+				showMaxMin: true
+			}
+		}
+	};
+
+	$scope.options3 = {
+		chart: {
+			type: 'multiChart',
+      showLegend: true,
+			height: 200,
+			margin : {
+				top: 30,
+				right: 60,
+				bottom: 50,
+				left: 70
+			},
+			color: d3.scale.category10().range(),
+			//useInteractiveGuideline: true,
+			transitionDuration: 500,
+			xAxis: {
+				axisLabel: 'Dates',
+				tickFormat: function(d) {
+					return d3.time.format('%x')(new Date( d * 1000 ));
+				},
+				showMaxMin: true
+			},
+			yAxis1: {
+				axisLabel: 'Axis1',
+				showMaxMin: true
+			},
+			yAxis2: {
+				axisLabel: 'Axis2',
+				showMaxMin: true
 			}
 		}
 	};
@@ -100,10 +168,14 @@ angular.module('cryptoai', ['nvd3','components'])
               method: 'GET',
               url: '/_tacharts',
               params: { bot: $location.search().bot }
+
         }).then( function successCallback(response){
 			
-            $scope.data = response.data
-			$timeout(getChartdata,10000)
+            $scope.data = response.data["primary"]
+            $scope.data2 = response.data["secondary"] 
+            $scope.data3 = response.data["tertiary"] 
+
+			$timeout(getChartdata,2000)
 		}, function errorCallback(response){
 			console.log("failed response from server")
 			$timeout(getChartdata,30000)
@@ -201,7 +273,7 @@ angular.module('cryptoai', ['nvd3','components'])
 .controller('botController', function($scope,$http,$timeout,$location) {
 
     $scope.botFields = ["name","last","signal","time"];
-    $scope.tradeFields = ["id","time","status","limit","qty","change"];
+    $scope.tradeFields = ["order_type","status","qty","rate","growth","time"];
 
 	( function getBotInfo() {
 
@@ -212,11 +284,13 @@ angular.module('cryptoai', ['nvd3','components'])
         }).then( function successCallback(response){
 			$scope.bot  = response.data.bot;
 			$scope.indicators = response.data.indicators;
+			$scope.signals = response.data.signals;
+			$scope.signal_history = response.data.signal_history;
 			$scope.logs = response.data.debug;
 			$timeout(getBotInfo,2000)
 		}, function errorCallback(response){
 			console.log("failed response from server")
-			$timeout(getBotInfo,5000)
+			$timeout(getBotInfo,10000)
 		});
 
 
@@ -230,7 +304,7 @@ angular.module('cryptoai', ['nvd3','components'])
               params: { bot: $location.search().bot }
         }).then( function successCallback(response){
 			$scope.trades = response.data.trades
-			$timeout(getBotTrades,30000)
+			$timeout(getBotTrades,5000)
 		}, function errorCallback(response){
 			console.log("failed response from server")
 			$timeout(getBotTrades,60000)

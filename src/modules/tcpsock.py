@@ -22,7 +22,7 @@ class TcpSock(object):
                 if self.responder == None:
                     conn.send(data)
                 else:
-                    msg = "{}\n".format(self.responder.get_info(data))
+                    msg = "{}\n".format(self.responder.dataProvider().getInfo(data))
                     conn.send( msg.encode() )
 
             conn.close()

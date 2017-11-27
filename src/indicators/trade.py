@@ -42,6 +42,8 @@ class Trade(object):
                 return True
             elif amount > details["goal"]:
                 return True
+        else:
+            return False
 
 
     def validate(self):

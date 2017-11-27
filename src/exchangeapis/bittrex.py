@@ -69,8 +69,6 @@ class Bittrex(object):
 
         nonce = math.floor(time.time())
         uri = "{}{}{}apikey={}&nonce={}".format(self.api2_root,api_path,appendchar,self.api_key,nonce)
-        print(uri)
-        print(json.dumps(payload))
         apisign = hmac.new ( self.api_secret.encode(), uri.encode(), hashlib.sha512 ).hexdigest()
         self.headers["apisign"] = apisign
 
@@ -160,11 +158,9 @@ class Bittrex(object):
     def market_get_open_orders( self, market):
         return self.private_process("market/getopenorders?market={}".format(market))
 
+
     def account_get_order( self, uuid ):
         return self.private_process("account/getorder?uuid={}".format(uuid))
-
-    def account_get_balances( self ):
-        return self.private_process("account/getbalances")
 
     def account_get_balances( self ):
         return self.private_process("account/getbalances")

@@ -1,4 +1,4 @@
-import os,sys,talib,numpy,math,logging
+import os,sys,talib,numpy,math,logging,time,datetime,math
 from collections import OrderedDict
 
 class MACD(object):
@@ -21,6 +21,47 @@ class MACD(object):
         self.data = self.get_macd()
         self.analysis = None
 
+
+    def get_tertiary_charts(self):
+
+        macddata = []
+        signaldata = []
+        historydata = []
+
+        for i in range(0,len(self.csdata["closed"])):
+            if not math.isnan(self.data[0][i]) and not math.isnan(self.data[1][i]) and not math.isnan(self.data[2][i]):
+                ts = time.mktime(datetime.datetime.strptime(self.csdata["time"][i], "%Y-%m-%dT%H:%M:%SZ").timetuple())
+
+                macddata.append({ "x": ts, "y": self.data[0][i], })
+                signaldata.append({ "x": ts, "y": self.data[1][i], })
+                historydata.append({ "x": ts, "y": self.data[2][i], })
+
+
+        return [{
+                "key": "macd",
+                "type": "line",
+                "color": "#990000",
+                "yAxis": 1,
+                "values": macddata
+                },{
+                "key": "signal",
+                "type": "line",
+                "color": "#009900",
+                "yAxis": 1,
+                "values": signaldata
+                },{
+                "key": "history",
+                "type": "bar",
+                "color": "#555555",
+                "yAxis": 2,
+                "values": historydata
+                }]
+
+    def get_secondary_charts(self):
+        return []
+
+    def get_secondary_charts(self):
+        return []
 
 
     def get_settings(self):

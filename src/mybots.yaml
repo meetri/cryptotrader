@@ -1,29 +1,46 @@
 crypto-bots:
 
-    btc-scraper:
-        market: USDT-BTC
-        trade_price_gap: 0.59
-        max_trade_qty: 0.01
-        min_trade_freq: 300
-        max_trades: 10
+    pot-surfer:
+        market: BTC-POT
+        candlestick: 5m
+        timeframe: 24h
+        budget: 0.001
+        tradelimit: 5
+        growthtarget: 2
+        stoploss: -3
 
-    eth-scraper:
-        market: USDT-ETH
-        trade_price_gap: 0.09
-        max_trade_qty: 0.01
-        min_trade_freq: 300
-        max_trades: 10
+    trig-surfer:
+        market: BTC-TRIG
+        candlestick: 5m
+        timeframe: 24h
+        budget: 0.001
+        tradelimit: 5
+        growthtarget: 2
+        stoploss: -3
 
-    adx-scraper:
-        market: BTC-ADX
-        trade_price_gap: 0.0
-        max_trade_qty: 5
-        min_trade_freq: 300
-        max_trades: 5
+    zec-surfer:
+        market: BTC-ZEC
+        candlestick: 5m
+        timeframe: 24h
+        budget: 0.001
+        tradelimit: 5
+        growthtarget: 2
+        stoploss: -3
 
-    cvc-scraper:
-        market: BTC-CVC
-        trade_price_gap: 0.0
-        max_trade_qty: 5
-        min_trade_freq: 300
-        max_trades: 5
+    powr-surfer:
+        market: BTC-POWR
+        candlestick: 5m
+        timeframe: 24h
+        budget: 0.001
+        tradelimit: 5
+        growthtarget: 0.5
+        stoploss: -3
+
+    bcc-surfer:
+        market: BTC-BCC
+        candlestick: 5m
+        timeframe: 24h
+        budget: 0.001
+        tradelimit: 5
+        growthtarget: 2
+        stoploss: -3

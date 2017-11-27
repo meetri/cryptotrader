@@ -6,6 +6,7 @@ from trader import Trader
 from coincalc import CoinCalc
 from macd import MACD
 from bollingerbands import BBands
+from atr import ATR
 from sma import SMA
 from rsi import RSI
 
@@ -25,13 +26,30 @@ class Analyzer(object):
 
         self.options = {}
 
-    def get_indicators(self):
+        self.backtest_timeindex = 0
+
+
+    def getIndicators(self):
         return self.indicators
 
-    def add_indicator(self, indicator, options = {}, label = None ):
+    def last( self, datapoint, index = 1 ):
+        return self.cs[datapoint][-1*index]
+
+    def getIndicator(self,indicator):
+        for i in range(0,len(self.indicators)):
+            if self.indicators[i]["label"] == indicator:
+                return self.indicators[i]["object"]
+
+
+    def addIndicator(self, indicator, options = {}, label = None ):
         if label is None:
             label = indicator
         self.indicators += [{"indicator":indicator,"label":label,"options":options,"object":None}]
+
+
+    #TODO remove...
+    def add_indicator(self, indicator, options = {}, label = None ):
+        return self.addIndicator(indicator,options,label)
 
 
     def process(self):
@@ -71,5 +89,9 @@ class Analyzer(object):
                 rsi = RSI(self.cs,**options)
                 indicatorObj["object"] = rsi
                 ret[label] = rsi.get_analysis()
+            elif indicator == "atr":
+                atr = ATR(self.cs,**options)
+                indicatorObj["object"] = atr
+                ret[label] = atr.get_analysis()
 
         return ret

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3.4
-import os,sys,time,curses
+import os,sys,time,curses,datetime
 import logging
 import cryptolib
 import random
@@ -7,7 +7,7 @@ import random
 from threading import Thread
 from simplesurfer import SimpleSurfer
 from middlebandsurfer import MiddleBandSurfer
-from bittrexmanager import BittrexManager
+from btmanager import BacktestManager
 from tools import Tools
 from tcpsock import TcpSock
 from ordermanager import OrderManager
@@ -32,7 +32,10 @@ def main(mybot):
 
 if __name__ == "__main__":
     mybot = MiddleBandSurfer(config)
-    mybot.setOrderManager(OrderManager( BittrexManager() ))
+    ts = time.time() - ( 60 * 60 * 72 )
+    ts = ts - ( ts % 3600 )
+    mybot.setBackTest(ts)
+    mybot.setOrderManager(OrderManager( BacktestManager() ))
     random.seed()
     port = random.randint(32000,63000)
     tcpsock = TcpSock("127.0.0.1",port,mybot)

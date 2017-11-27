@@ -8,6 +8,18 @@
 	fill: #A9A9A9;
 }
 
+.nvtooltip td {
+  color: #A9A9A9;
+}
+
+.nvtooltip {
+  border:1px solid #A9A9A9;
+}
+
+.nvd3 text {
+	fill: #A9A9A9;
+}
+
 .nvtooltip {
     background: #111;
 }

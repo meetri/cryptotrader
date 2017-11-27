@@ -67,15 +67,24 @@ class PgPool(object):
         try:
             cur.execute(sql,vdata)
             conn.commit()
-            insert_id = cur.fetchone()
+            insert_id = cur.fetchone()[0]
             rowcount = cur.rowcount
         except Exception as ex:
+            print("postgresql insert error: {}".format(ex))
             insert_id = None
         finally:
             self.db.putconn(conn)
             cur.close()
 
         return insert_id
+
+
+    def select(self, query, params ):
+        cur = self.get_dict_cursor()
+        cur.execute(query,params)
+        res = cur.fetchall()
+        cur.close()
+        return res
 
 
     def update(self,  schema, pkey, mapdata, srcdata):

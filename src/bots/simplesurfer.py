@@ -2,22 +2,20 @@ import os,sys,time
 from basebot import BaseBot
 from marketanalyzer import Analyzer
 from exchange import Exchange
-from doubleband import DoubleBand
 
-class MiddleBandSurfer(BaseBot):
+class SimpleSurfer(BaseBot):
 
     #def __init__(self,market,budget,tradelimit,candlestick="5m",timeframe="24h"):
     def __init__(self,config ):
-        BaseBot.__init__(self,"MiddleBandSurfer",config)#market,budget,tradelimit,candlestick,timeframe,"SimpleSurfer")
+        BaseBot.__init__(self,"SimpleSurfer",config)#market,budget,tradelimit,candlestick,timeframe,"SimpleSurfer")
         self.refreshData()
-        self.append_debug_message("Hello, from MiddleBandSurfer bot")
+        self.append_debug_message("Hello, from SimpleSurfer bot")
 
 
     def refreshData(self):
         self.refreshCandlesticks()
         self.analyzer.addIndicator("macd",{})
         self.analyzer.addIndicator("bbands",{"timeperiod":20,"nbdevup":2,"nbdevdn":2})
-        self.analyzer.addIndicator("bbands",{"timeperiod":20,"nbdevup":1.5,"nbdevdn":1.5,"label":"iBBands","chartcolors":["#AA0000","00AA00","0000AA"]},"iBBand")
         self.analyzer.addIndicator("atr",{"period":14})
         self.analyzer.addIndicator("rsi",{"overbought":63,"oversold":40,"period":14})
         self.analyzer.process()
@@ -28,12 +26,8 @@ class MiddleBandSurfer(BaseBot):
 
         macd = self.analyzer.getIndicator("macd")
         bbands = self.analyzer.getIndicator("bbands")
-        ibbands = self.analyzer.getIndicator("iBBand")
         rsi = self.analyzer.getIndicator("rsi")
         atr = self.analyzer.getIndicator("atr")
-
-        dband = DoubleBand(self.analyzer,outer=bbands,inner=ibbands)
-
 
         self.pushSignal("rsi","oversold",rsi.isOversold(),minor=True)
         self.pushSignal("rsi","overbought",rsi.isOverbought(),minor=True)
@@ -56,27 +50,25 @@ class MiddleBandSurfer(BaseBot):
         """
 
         messages = []
+        if self.analyzer.last("closed",2) < bbands.middle(2) and self.analyzer.last("closed") > bbands.middle():
+            messages.append("price is moving above middle band")
 
-        if dband.enteringLowerBand():
-            messages.append("entering lower band")
-        if dband.exitingLowerOuterBand():
-            messages.append("exiting lower outer band")
-        if dband.enteringLowerOuterBand():
-            messages.append("entering lower outer band")
-        if dband.exitingLowerOuterBand():
-            messages.append("exiting lower outer band")
-        if dband.risingAboveCenter():
-            messages.append("rising above center")
-        if dband.enteringUpperBand():
-            messages.append("entering upper band")
-        if dband.exitingOuterUpperBand():
-            messages.append("exiting outer upper band")
-        if dband.enteringOuterUpperBand():
-            messages.append("entering outer upper band")
-        if dband.exitingUpperBand():
-            messages.append("exiting upper band")
-        if dband.settingBelowCenter():
-            messages.append("setting below center")
+        if self.analyzer.last("closed",2) > bbands.middle(2) and self.analyzer.last("closed") < bbands.middle():
+            messages.append("price is moving below middle band")
+
+        if self.analyzer.last("closed") > bbands.top():
+            messages.append("price is above top band")
+
+        if self.analyzer.last("closed") < bbands.low():
+            messages.append("price is below the lower band")
+
+        if (self.analyzer.last("closed",2) > bbands.top(2) and
+                self.analyzer.last("closed") > bbands.top()):
+            messages.append("price is moving strong above top band")
+
+        if (self.analyzer.last("closed",2) < bbands.low(2) and
+                self.analyzer.last("closed") < bbands.low()):
+            messages.append("price is moving strong below lower band")
 
 
         #check if price goes below the lower band
@@ -95,7 +87,6 @@ class MiddleBandSurfer(BaseBot):
         if messages:
             self.debug = []
             for msg in messages:
-                self.log.info(msg)
                 self.debug.append(msg)
         else:
             self.debug = ["Nothing interesting to report"]

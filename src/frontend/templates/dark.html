@@ -2,20 +2,14 @@
 <html>
   <head>
 
-      <!--
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
-    -->
-
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.6/angular.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.6/angular-animate.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.6/angular-aria.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.6/angular-messages.min.js"></script>
 
-	<script src="static/bower_components/d3/d3.js"></script>
-	<script src="static/bower_components/nvd3/build/nv.d3.js"></script> <!-- or use another assembly -->
-	<script src="static/bower_components/angular-nvd3/dist/angular-nvd3.js"></script>
+    <script src="static/bower_components/d3/d3.js"></script>
+    <script src="static/bower_components/nvd3/build/nv.d3.js"></script> <!-- or use another assembly -->
+    <script src="static/bower_components/angular-nvd3/dist/angular-nvd3.js"></script>
 
 
     <script src="static/js/ui-bootstrap.js"></script>
@@ -52,14 +46,15 @@
 	<div class='container-fluid'>
         <div class="row topnav">
             <span class='navitem' style='margin-right:2rem;'>{{bot['name']}}</span>
-            <span class='navitem' style='margin-right:2rem;'>{{bot['market']}}</span>
-            <span class='navitem'>Signal</span> <span animate-on-change="bot['signal']" style='margin-right:2rem;'>{{bot['signal']}}</span>
-            <span class='navitem'>Candlesize</span> <span style='margin-right:2rem;'>{{bot['cs']}}</span>
+            <span class='navitem' style='margin-right:2rem;'>{{bot['config']['market']}}</span>
+            <span class='navitem'>Signal</span> <span animate-on-change="bot['signal']['signal']" style='margin-right:2rem;'>{{bot['signal']["signal"]}}</span>
+            <span class='navitem'>Candlesize</span> <span style='margin-right:2rem;'>{{bot['config']['candlestick']}}</span>
             <span class='navitem'>Last</span> <span animate-on-change="bot['last']" style='margin-right:2rem;'>{{bot['last']}}</span>
-            <span class='smallitem'>Max Trade Qty: {{bot['max_trade_quantity']}}</span>
-            <span class='smallitem'>Min Trade Freq: {{bot['min_trade_freq']}}</span>
-            <span class='smallitem'>{{bot['cs']}} Candles</span>
-            <span animate-on-change="bot['time']" class="text-right">{{bot['time']}}</span>
+            <span class='smallitem'>Budget: {{bot['config']['budget']}}</span>
+            <span class='smallitem'>Max Trades: {{bot['config']['tradelimit']}}</span>
+            <span class='smallitem'>{{bot['config']['candlestick']}} Candles</span>
+            <span class='navitem'>Candle Time:</span> <span animate-on-change="bot['time']" class="text-right" style='margin-right:2rem'>{{bot['time']}}</span>
+            <span class='navitem'>Server Time:</span> <span animate-on-change="bot['servertime']" class="text-right" style='margin-right:2rem'>{{bot['servertime']}}</span>
         </div>
         <div class="row">
             <div class="col-sm-8">
@@ -75,11 +70,13 @@
                 </tr> </tbody> </table>
                 <h5>Technical Analysis Charts</h5>
                 <div ng-controller="tacharts">
-					<nvd3 options="options" config="config" data="data"></nvd3>
+                  <nvd3 options="options" config="config" data="data"></nvd3>
+                  <nvd3 options="options2" config="config2" data="data2"></nvd3>
+                  <nvd3 options="options3" config="config3" data="data3"></nvd3>
                 </div>
                 <h5>Candlesticks</h5>
                 <div ng-controller="candlestickBarChartCtrl">
-					<nvd3 options="options" config="config" data="data"></nvd3>
+                  <nvd3 options="options" config="config" data="data"></nvd3>
                 </div>
             </div>
             <div class="col-sm-4">
@@ -89,6 +86,46 @@
                         <tr ng-repeat="msg in logs"><td>{{msg}}</td></tr>
                     </tbody>
                 </table>
+                <h5>Signals</h5>
+                <table class='table table-bordered table-condensed table-striped'>
+                    <thead>
+                      <tr><th>Name</th><th>Signal</th><th>Strength</th><th>Time</th><th>Count</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="(signal,data) in signals">
+                          <td>{{signal}}</td>
+                          <td animate-on-change="data['signal']">{{data["signal"]}}</td>
+                          <td animate-on-change="data['strength']">{{data["strength"]}}</td>
+                          <td animate-on-change="data['cstime']">{{data["cstime"]}}</td>
+                          <td animate-on-change="data['count']">{{data["count"]}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <h5>Trades</h5>
+                <table class="table table-inversei table-bordered">
+                  <thead> <tr><th>Type</th><th>Status</th><th>Quantity</th><th>Rate</th><th>Growth</th><th>Time</th></tr> </thead>
+                <tbody>
+                    <tr ng-repeat="trade in trades">
+                      <td>{{trade["order_type"]}}</td>
+                      <td>{{trade["status"]}}</td>
+                      <td>{{trade["qty"]}}</td>
+                      <td>{{trade["rate"]}}</td>
+                      <td animate-on-change="trade['growth']">{{trade["growth"]}}</td>
+                      <td>{{trade["time"]*1000 | date : "MM/dd/yy HH:mm:ss" }}</td>
+                    </tr>
+                </tbody></table>
+                <h5>Trade Signals</h5>
+                <table class="table table-inversei table-bordered">
+                  <thead> <tr><th>Signal</th><th>Rate</th><th>Count</th><th>Time</th></tr> </thead>
+                <tbody>
+                    <tr ng-repeat="signal in signal_history">
+                      <td>{{signal["signal"]}}</td>
+                      <td>{{signal["rate"]}}</td>
+                      <td>{{signal["count"]}}</td>
+                      <td>{{signal["time"]*1000 | date : "MM/dd/yy HH:mm:ss" }}</td>
+                    </tr>
+                </tbody></table>
+                <!--
                 <div class="row">
                     <h5>Longs</h5>
                     <table class="table table-inversei table-bordered">
@@ -106,6 +143,7 @@
                 <div class="row">
                     <h5>Shorts</h5>
                 </div>
+                -->
             </div>
         </div>
     </div><!-- /.container -->

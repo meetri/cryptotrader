@@ -1,322 +1,186 @@
 import os,sys,logging,time,json,datetime
 from trader import Trader
-from wallet import Wallet
-from exchange import Exchange
-from trade import Trade
+from marketanalyzer import Analyzer
+from botdata import BotDataProvider
 
 class BaseBot(object):
 
-    def __init__(self, market, name = None ):
-        self.debugmode = True
-        self.log = logging.getLogger('crypto')
-        self.indicators = []
-        self.market = market
-        self.trader = Trader(market=market)
-        self.csdata = None
+    OVERBOUGHT = 100
+    OVERSOLD = 200
+
+    #def __init__(self, market,budget, tradelimit, candlestick = "5m",timeframe = "24h",  name = None, config = {} ):
+    def __init__(self, name, config):
+
+        self.config = config
         self.name = name
-        self.results = {}
+        self.market = config.get("market",None)
+        self.budget = config.get("budget",None)
+        self.tradelimit = config.get("tradelimit",None)
+
+        if not self.market or not self.budget or not self.tradelimit:
+            raise Exception("missing required fields market: {}, budget: {}, tradelimit: {}".format(self.market,self.budget,self.tradelimit))
+
+        self.candlestick=config.get("candlestick","5m")
+        self.timeframe=config.get("timeframe","24h")
+        self.growth_target = config.get("growthtarget",2)
+        self.stop_loss = config.get("stoploss",3)
         self.signal = None
-        self.trade_price = None
-        self.trades = []
-        self.rejected_trades = []
-        self.load_active_trades()
-        self.last_trade_time = None
-        self.last_trade_price = None
-        self.trade_quantity = 0.01
-        self.minimum_trade_frequency = 120
-        self.max_ongoing_trades = 10
-        self.trade_price_gap = 0
+        self.results = {}
+
+        #dataprovider for candlestick data
+        self.trader = Trader(market=self.market)
+
+        #candlestick data
+        self.csdata = None
+
+        #manage indicators
+        self.analyzer = None
+
+        #manage orders
+        self.ordermanager = None
+
+        #keep track of latest indicator and bot signals
+        self.signal_history = {}
+        self.all_signals = []
+
+        self.log = logging.getLogger('crypto')
+
+        # debug messages passed to bot client
         self.debug = []
-        self.signal_monitor = {}
 
-        # lag signal by about 30 seconds...
-        self.signal_lagtime = 30
+        #aggregate bot data for bot client
+        self.data_provider = BotDataProvider(self)
 
-
-    def get_monitor_signal(self, label ):
-        return self.signal_monitor.get(label)["signal"]
-
-
-    def signal_last_triggered( self, name ):
-        if name in self.signal_monitor:
-            return self.signal_monitor[name]["last_triggered"]
+        #enable backtesting...
+        self.backtest = False
+        self.backtest_tick = None
+        self.backtest_interval = 300
 
 
-    def trigger_signal(self, name ):
-        if name in self.signal_monitor:
-            self.signal_monitor[name]["last_triggered"] = time.time()
+    def setBackTest( self, timestart ):
+        self.log.info("enabling backtesting: {}".format(timestart))
+        self.backtest = True
+        self.backtest_tick = timestart
+        self.backtest_interval = 300
+
+    def stopBackTest(self):
+        self.backtest = False
+        self.log.info("backtest completed")
+
+    def marketRate(self,index=1):
+        return self.analyzer.last("closed",index)
 
 
-    def track_signals(self, signals ):
-        """keep track for how long a particular signal has been on"""
+    def getOrderManager(self):
+        return self.ordermanager
 
-        for signal in signals:
-            analysis = signals[signal].get("analysis",{})
-            if signal not in self.signal_monitor or analysis.get("signal") != self.signal_monitor[signal].get("signal"):
-                self.signal_monitor[signal] = {
-                    "signal": signals[signal].get("signal"),
-                    "last_triggered": None,
-                    "timestamp": time.time()
-                }
 
+    def setOrderManager(self,om):
+        self.ordermanager = om
+        self.ordermanager.setBot(self)
+        self.log.info("initializing order manager")
+        self.ordermanager.startOrderMonitor(5)
+
+
+    def getSignal(self):
+        return self.signal
+
+
+    def checkSignal(self,name,signal,timepassed):
+        checktime = time.time() - timepassed
+        if name in self.signal_history and self.signal_history[name]["time"] > checktime:
+            self.debug.append("checksignal {} triggered".format(name))
+            return self.signal_history[name]["strength"]
+
+        return None
+
+
+    def pushSignal(self,name,signal,strength,minor=False):
+
+        if strength is not None:
+            sig = {
+                    "name": self.getName(),
+                    "signal" : signal,
+                    "rate": self.marketRate(),
+                    "cstime": self.analyzer.last("time"),
+                    "time": time.time(),
+                    "strength": strength,
+                    "count": 1
+                    }
+
+            if not minor:
+                if self.signal and self.signal["name"] == sig["name"] and self.signal["cstime"] == sig["cstime"]:
+                    self.signal["count"] += 1
+                else:
+                    self.signal = sig
+
+            if name in self.signal_history and self.signal_history[name]["cstime"] == sig["cstime"]:
+                self.signal_history[name]["count"] +=  1
+            else:
+                self.signal_history[name] = sig
+                if not minor:
+                    self.all_signals.append(sig)
+
+    def debug_reset(self):
+        self.debug = []
+
+    def append_debug_message(self,msg):
+        self.debug.append(msg)
 
     def get_debug_messages(self):
         return self.debug
 
-    def load_active_trades(self):
-        self.trades = Trade.load_by_manager(self.name,self.market)
-        self.log.info("loading active trades, found: {}".format(len(self.trades)))
+    def process(self):
+        res = None
 
-    def find_trade_by_id(self,idx):
-        for trade in self.trades:
-            if trade.pkey == idx:
-                return trade
+        if self.getSignal():
+            res =  self.getOrderManager().processSignal()
 
+        self.getOrderManager().checkStops()
 
-    def get_monitored_trades(self):
-        return self.trades
+        return res
 
 
-    def get_rejected_trades(self):
-        return self.rejected_trades
+    def refreshCandlesticks(self):
+        if self.backtest:
+            bt_time = "{}s".format(int(self.backtest_tick))
+            self.csdata = self.trader.get_candlesticks(self.timeframe,self.candlestick,dateOffset=bt_time)
+            self.backtest_tick += self.backtest_interval
+            if self.backtest_tick > time.time():
+                self.log.info("backtest complete")
+                self.backtest_tick = time.time()
+        else:
+            self.csdata = self.trader.get_candlesticks(self.timeframe,self.candlestick)
+
+        self.analyzer = Analyzer( self.csdata )
+        self.signal = None
+        return self.analyzer
 
 
-    def monitor_trade(self, trade ):
-        self.last_trade_time = time.time()
-        self.last_trade_price = trade.price
-        self.trades += [trade]
+    def getAnalyzer():
+        return self.analyzer
 
+    def getMarket(self):
+        return self.market
 
-    def reject_trade(self,trade):
-        self.rejected_trades += [trade]
-
-
-    def get_details(self):
-        return {
-                "name": self.get_name()
-                }
-
-    def get_active_trades(self):
-        count = 0
-        for trade in self.trades:
-            if trade.status in ["open","holding"]:
-                count += 1
-        return count
-
-
-    def gen_trade(self, order_type = "limit"):
-
-        last = Exchange.getInstance().get_market_value( self.market )
-        if self.trade_price is None:
-            self.trade_price = last
-
-        if self.signal == "oversold":
-            if self.last_trade_time and self.last_trade_time + self.minimum_trade_frequency > time.time():
-                self.log.info("blocked - for {} seconds".format( (self.last_trade_time+self.minimum_trade_frequency) - time.time()))
-                self.debug += ["blocked - for {} seconds".format( (self.last_trade_time+self.minimum_trade_frequency) - time.time())]
-                # block this trade...
-                return
-
-            if self.get_active_trades() >= self.max_ongoing_trades:
-                self.log.info("blocked - max allowed trade count reached")
-                self.debug += ["blocked - max allowed trade count reached"]
-                return
-
-            if self.last_trade_price == self.trade_price:
-                self.log.info("blocked - trade unit price same as previous trade")
-                self.debug += ["blocked - trade unit price same as previous trade"]
-                return
-
-            #TODO . block if sell and open sell, and  sell amount is greater than open sell amount...
-            #TODO . block if buy and open buy, and buy is less than open buy
-            #TODO . block if buy and most recent buy is less
-            #TODO . externalize guard rules... ( different protections for different types of bots )
-
-        trade_type = None
-        sell_trade = None
-
-        if self.signal == "overbought":
-            for trade in self.trades:
-                if self.debugmode or trade.forsale(last,minbuy=False):
-                    trade_type = "sell"
-                    if sell_trade:
-                        if trade.details()["change"] > sell_trade.details()["change"]:
-                            sell_trade = trade
-                    else:
-                        sell_trade = trade
-
-            if sell_trade == None:
-                self.log.info("no buy trades to sell")
-                self.debug += ["no buy trades to sell at this time"]
-                return
-            else:
-                sell_trade.hold = True
-                self.quantity = sell_trade.quantity
-
-        elif self.signal == "oversold":
-            if Wallet.getInstance().buy_budget(self.market,self.trade_price):
-                trade_type = "buy"
-            else:
-                self.log.info("you are out of budget to buy")
-                self.debug += ["you have no money to buy anyting"]
-
-
-        if self.trade_price_gap > 0:
-            if trade_type == "buy":
-                self.trade_price = self.trade_price + self.trade_price_gap
-            elif trade_type == "sell":
-                self.trade_price = self.trade_price - self.trade_price_gap
-
-        if trade_type:
-            newtrade = Trade({
-                "market": self.market,
-                "quantity": self.trade_quantity,
-                "price": self.trade_price,
-                "trade_type": trade_type,
-                "order_type": order_type,
-                "managed_by": self.name,
-                "created_by": self.name,
-                "modified_by": self.name,
-                "meta": {
-                    "bot_source": self.get_details(),
-                    "details": {}
-                    }
-                })
-
-            #reset trade price
-            self.trade_price = None
-
-            if sell_trade:
-                sell_trade.sign_trade(newtrade)
-
-            return newtrade
-
-
-    def get_tradeprice(self):
-        return self.trade_price
-
-
-    def get_signal(self):
-        return self.signal
-
-
-    def get_name(self):
+    def getName(self):
         return self.name
 
-
-    def get_indicators(self):
+    def getIndicators(self):
         return self.indicators
 
-    def check_overrides(self):
-        buyfile = "/tmp/buy_override"
-        sellfile = "/tmp/sell_override"
+    def dataProvider(self):
+        return self.data_provider
 
-        if os.path.isfile(buyfile):
-            self.log.info("buy override initiated")
-            self.signal = "oversold"
-            os.remove(buyfile)
-        elif os.path.isfile(sellfile):
-            self.log.info("sell override initiated")
-            self.signal = "overbought"
-            os.remove(sellfile)
-
-
-    def set_results(self,results):
-        self.check_overrides()
-        self.results = results
-
-
-    def get_results(self):
-        return self.results
-
-
-    def get_tacharts(self):
-        allcharts = []
-
-        for i in self.indicators:
-            chart = i["object"].get_charts()
-            for chart in i["object"].get_charts():
-                if chart is not None:
-                    allcharts.append(chart)
-
-        pricechart = { "color":"#6BF","key": "Price", "type": "line", "yAxis": 1, "values": [] }
-        for i in range(0,len(self.csdata["closed"])):
-            ts = time.mktime(datetime.datetime.strptime(self.csdata["time"][i], "%Y-%m-%dT%H:%M:%SZ").timetuple())
-            if self.csdata["closed"][i] > 0:
-                pricechart["values"].append({
-                    "x": ts,
-                    "y": self.csdata["closed"][i]
-                })
-
-        allcharts.append(pricechart)
-
-        return json.dumps(allcharts)
-
-
-    def get_chart(self):
-        fullchart = []
-        chart_corrected = 0
-        for i in range(0,len(self.csdata["open"])):
-            ts = time.mktime(datetime.datetime.strptime(self.csdata["time"][i], "%Y-%m-%dT%H:%M:%SZ").timetuple())
-            if self.csdata["open"][i] > 0:
-                fullchart.append({
-                    "date": ts,
-                    "open": self.csdata["open"][i],
-                    "close": self.csdata["closed"][i],
-                    "high": self.csdata["high"][i],
-                    "low": self.csdata["low"][i],
-                    "volume": self.csdata["volume"][i],
-                    "adjusted": 0,
-                    })
-            else:
-                chart_corrected += 1
-
-        return json.dumps( [{ "errors": chart_corrected,"values" : fullchart }])
-
-    def get_trades(self):
-        tradelist = {
-                "long": [],
-                "shorts": []
+    def info(self):
+        return {
+                "name": self.name,
+                "signal": self.signal,
+                "last": self.marketRate(),
+                "time" : self.analyzer.last("time"),
+                "servertime": time.strftime("%c"),
+                "config": self.config
                 }
 
-        for trade in self.trades:
-            if trade.trade_type == "buy":
-                tradelist["long"].append ( trade.details() )
-            else:
-                tradelist["shorts"].append ( trade.details() )
 
-        return json.dumps({
-            "trades" : tradelist,
-            })
-
-
-    def get_info(self, data = None):
-
-        if data == "chart":
-            return self.get_chart()
-        elif data == "tacharts":
-            return self.get_tacharts()
-        elif data == "trades":
-            return self.get_trades()
-        else:
-
-            indicators = []
-            for i in self.indicators:
-                indicators.append(i["object"].format_view())
-
-            botinfo = dict(self.results)
-            botinfo["name"] = self.name
-            botinfo["market"] = self.market
-            botinfo["min_trade_freq"] = self.minimum_trade_frequency
-            botinfo["max_active_trades"] = self.max_ongoing_trades
-            botinfo["max_trade_quantity"] = self.trade_quantity
-
-            return json.dumps({
-                "bot": botinfo,
-                "indicators": indicators,
-                "debug" : self.debug
-                })
-
-    def process(self):
-        return self
 

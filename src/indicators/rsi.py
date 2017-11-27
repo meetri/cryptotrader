@@ -17,20 +17,60 @@ class RSI(object):
         self.data = self.calc_value()
         self.analysis = None
 
+
+    def isOverbought(self,index = 1):
+        index = index * -1
+        if self.data[index] >= self.overbought:
+            return (self.data[index]-self.overbought)
+        else:
+            return None
+
+
+    def isOversold(self,index = 1):
+        index = index * -1
+        if self.data[index] <= self.oversold:
+            return (self.oversold-self.data[index])
+        else:
+            return None
+
+
     def get_data(self):
         return data
 
     def get_charts(self):
+        return []
+
+    def get_tertiary_charts(self):
+        return []
+
+    def get_secondary_charts(self):
         data = []
+        start_ts = None
+        end_ts = None
         for i in range(0,len(self.csdata["closed"])):
             if isinstance(self.data[i],numbers.Number) and self.data[i] > 0:
                 ts = time.mktime(datetime.datetime.strptime(self.csdata["time"][i], "%Y-%m-%dT%H:%M:%SZ").timetuple())
+
                 data.append({
                     "x": ts,
                     "y": self.data[i],
                     })
 
+        start_ts = time.mktime(datetime.datetime.strptime(self.csdata["time"][0], "%Y-%m-%dT%H:%M:%SZ").timetuple())
+        end_ts = time.mktime(datetime.datetime.strptime(self.csdata["time"][-1], "%Y-%m-%dT%H:%M:%SZ").timetuple())
         return [{
+                "key": "overbought",
+                "type": "line",
+                "color": "#990000",
+                "yAxis": 2,
+                "values": [{"x":start_ts,"y":self.overbought},{"x":end_ts,"y":self.overbought}]
+                },{
+                "key": "oversold",
+                "type": "line",
+                "color": "#009900",
+                "yAxis": 2,
+                "values": [{"x":start_ts,"y":self.oversold},{"x":end_ts,"y":self.oversold}]
+                },{
                 "key": "{}:{}".format(self.label,self.period),
                 "type": "line",
                 "color": "#555555",

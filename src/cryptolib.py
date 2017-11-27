@@ -11,6 +11,8 @@ sys.path.append(curdir + "/datasources")
 sys.path.append(curdir + "/exchangeapis")
 sys.path.append(curdir + "/indicators")
 sys.path.append(curdir + "/bots")
+sys.path.append(curdir + "/orders")
+sys.path.append(curdir + "/exchanges")
 
 logger = logging.getLogger('crypto')
 hdlr = logging.FileHandler('/tmp/crypto.log')

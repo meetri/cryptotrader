@@ -20,6 +20,7 @@ class SMA(BaseIndicator):
     def get_settings(self):
         return "{}".format(self.period)
 
+
     def get_charts(self):
         data = []
         for i in range(0,len(self.csdata["closed"])):

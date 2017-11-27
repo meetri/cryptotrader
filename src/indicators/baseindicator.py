@@ -12,14 +12,19 @@ class BaseIndicator(object):
 
         self.scalefactor = 1048576
         self.data = None
-        self.chartdata = []
 
 
     def get_data(self):
         return self.data
 
+    def get_secondary_charts(self):
+        return []
+
+    def get_tertiary_charts(self):
+        return []
+
     def get_charts(self):
-        return self.chartdata
+        return []
 
     def scaledown(self,data):
 
