@@ -5,7 +5,7 @@ from order import Order
 
 class BacktestManager(ExchangeManager):
 
-    def __init__(self, key = None, secret = None, config = {} ):
+    def __init__(self, config = {} ):
         ExchangeManager.__init__(self, "BTEST", config )
         self.balance = None
         self.log = logging.getLogger('crypto')

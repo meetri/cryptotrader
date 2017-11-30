@@ -165,9 +165,9 @@ class Order(object):
 
 
     @staticmethod
-    def findByBot(botname,market):
+    def findByBot(botname,market,exchange):
         orders = []
-        res = PgPool.getInstance().select("""SELECT * FROM markets.orders WHERE created_by=%s AND market=%s""",[botname,market])
+        res = PgPool.getInstance().select("""SELECT * FROM markets.orders WHERE created_by=%s AND market=%s AND exchange=%s""",[botname,market,exchange])
         for order in res:
             orders .append( Order.create(order) )
 
@@ -183,9 +183,9 @@ class Order(object):
         return Result( len(orders) > 0, data = { "found": len(orders),"results": orders } )
 
     @staticmethod
-    def findByBotActive(botname,market):
+    def findByBotActive(botname,market,exchange):
         orders = []
-        res = PgPool.getInstance().select("""SELECT * FROM markets.orders WHERE created_by=%s AND market=%s AND status < %s""",[botname,market,Order.COMPLETED])
+        res = PgPool.getInstance().select("""SELECT * FROM markets.orders WHERE created_by=%s AND market=%s AND exchange=%s AND status < %s""",[botname,market,exchange,Order.COMPLETED])
         for order in res:
             orders .append( Order.create(order) )
 

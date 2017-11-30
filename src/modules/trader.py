@@ -1,7 +1,5 @@
 import os,sys,talib,numpy,math
 from influxdbwrapper import InfluxDbWrapper
-from macd import MACD
-from bollingerbands import BBands
 from coincalc import CoinCalc
 from exchange import Exchange
 
@@ -30,7 +28,9 @@ class Trader(object):
 
         cs = self.clear_candlesticks()
 
+        psize = 0
         for point in points:
+            psize += 1
             cs["low"].extend([point["low"]])
             cs["high"].extend([point["high"]])
             cs["closed"].extend([point["closed"]])
@@ -38,6 +38,10 @@ class Trader(object):
             cs["volume"].extend([point["volume"]])
             cs["basevolume"].extend([point["basevolume"]])
             cs["time"].extend([point["time"]])
+
+
+        if psize == 0:
+            raise Exception("no market data for {} at {}".format(self.market,dateOffset))
 
         def fix_gaps(lst):
             for idx,val in enumerate(lst):

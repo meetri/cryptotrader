@@ -1,4 +1,4 @@
-import os,sys,logging,time,json,datetime
+import os,sys,logging,time,json,datetime,random
 from trader import Trader
 from marketanalyzer import Analyzer
 from botdata import BotDataProvider
@@ -14,10 +14,10 @@ class BaseBot(object):
         self.config = config
         self.name = name
         self.market = config.get("market",None)
-        self.budget = config.get("budget",None)
-        self.tradelimit = config.get("tradelimit",None)
+        self.budget = config.get("budget",0)
+        self.tradelimit = config.get("tradelimit",0)
 
-        if not self.market or not self.budget or not self.tradelimit:
+        if not self.market:
             raise Exception("missing required fields market: {}, budget: {}, tradelimit: {}".format(self.market,self.budget,self.tradelimit))
 
         self.candlestick=config.get("candlestick","5m")
@@ -52,20 +52,24 @@ class BaseBot(object):
         self.data_provider = BotDataProvider(self)
 
         #enable backtesting...
-        self.backtest = False
-        self.backtest_tick = None
-        self.backtest_interval = 300
+        self.backtest = config.get("backtest",False)
+        ofs  = config.get("backtest_start_ofs",259200)
+        ts = time.time() - ofs
+        ts = ts - ( ts % 3600 ) - config.get("run_offset",0)
+        self.backtest_tick = ts
 
+        self.run_interval = config.get("run_interval",300)
 
-    def setBackTest( self, timestart ):
-        self.log.info("enabling backtesting: {}".format(timestart))
-        self.backtest = True
-        self.backtest_tick = timestart
-        self.backtest_interval = 300
+        if self.backtest:
+            random.seed()
+            rid = random.randint(100,70000)
+            self.name = "{}-{}".format(name,rid)
+
 
     def stopBackTest(self):
         self.backtest = False
         self.log.info("backtest completed")
+
 
     def marketRate(self,index=1):
         return self.analyzer.last("closed",index)
@@ -145,7 +149,7 @@ class BaseBot(object):
         if self.backtest:
             bt_time = "{}s".format(int(self.backtest_tick))
             self.csdata = self.trader.get_candlesticks(self.timeframe,self.candlestick,dateOffset=bt_time)
-            self.backtest_tick += self.backtest_interval
+            self.backtest_tick += self.run_interval
             if self.backtest_tick > time.time():
                 self.log.info("backtest complete")
                 self.backtest_tick = time.time()

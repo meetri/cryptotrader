@@ -78,7 +78,7 @@ class OrderManager(object):
             if sellorder.order_type == Order.BUY and sellorder.status == Order.FILLED:
                 upforsale.append(sellorder)
         else:
-            activeOrders = Order.findByBot(self.bot.getName(),self.bot.getMarket())
+            activeOrders = Order.findByBot(self.bot.getName(),self.bot.getMarket(),self.exchange.getName())
             for order in activeOrders.data["results"]:
                 if order.status == Order.FILLED:
                     growth = Tools.calculateGrowth( self.bot.marketRate(), order.rate )
@@ -123,7 +123,7 @@ class OrderManager(object):
             return None
 
         #get total amount in active trades
-        activeOrders = Order.findByBot(self.bot.getName(),self.bot.getMarket())
+        activeOrders = Order.findByBot(self.bot.getName(),self.bot.getMarket(),self.exchange.getName())
         activeTradesSum = float(Order.sumOrders( activeOrders.data["results"] ))
         remaining_funds = self.bot.budget - activeTradesSum
 
@@ -156,7 +156,7 @@ class OrderManager(object):
 
     def getBotOrders(self,refresh=False):
         if refresh or self.bot_orders is None:
-            results = Order.findByBot(self.bot.getName(),self.bot.getMarket())
+            results = Order.findByBot(self.bot.getName(),self.bot.getMarket(),self.exchange.getName())
             self.bot_orders = results.data["results"]
 
         return self.bot_orders
@@ -182,7 +182,7 @@ class OrderManager(object):
             return self.send(Order(order))
 
     def getOpenOrders(self):
-        openorders = Order.findByBotActive(self.bot.getName(), self.bot.getMarket())
+        openorders = Order.findByBotActive(self.bot.getName(), self.bot.getMarket(),self.exchange.getName())
         self.openorders = openorders.data["results"]
 
     def checkStops(self):

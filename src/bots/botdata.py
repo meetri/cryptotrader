@@ -103,7 +103,8 @@ class BotDataProvider(object):
         else:
             indicators = []
             for i in self.bot.analyzer.getIndicators():
-                indicators.append(i["object"].format_view())
+                if i["object"]:
+                    indicators.append(i["object"].format_view())
 
             result = {
                 "bot": self.bot.info(),

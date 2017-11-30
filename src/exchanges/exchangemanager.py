@@ -13,7 +13,6 @@ class ExchangeManager(object):
     def processOrder(self, order ):
         return False
 
-
     def getName(self):
         return self.name
 

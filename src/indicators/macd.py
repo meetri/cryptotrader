@@ -4,16 +4,16 @@ from collections import OrderedDict
 class MACD(object):
 
 
-    def __init__(self,csdata, fastperiod=12, slowperiod=26, signalperiod=9 , bull_lag = 1):
+    def __init__(self,csdata, config ): #fastperiod=12, slowperiod=26, signalperiod=9 , bull_lag = 1):
 
         #macd settings
-        self.fastperiod = fastperiod
-        self.slowperiod = slowperiod
-        self.signalperiod = signalperiod
+        self.fastperiod = config.get("fastperiod",12)
+        self.slowperiod = config.get("slowperiod",26)
+        self.signalperiod = config.get("signalperiod",9)
         self.label = "macd"
 
         #number of segments after bull trend does a buy action occur
-        self.bull_lag = bull_lag
+        self.bull_lag = config.get("bull_lag",1)
 
         #candlestick data
         self.csdata = csdata

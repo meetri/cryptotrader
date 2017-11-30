@@ -3,16 +3,16 @@ from collections import OrderedDict
 
 class RSI(object):
 
-    def __init__(self,csdata, period = 14, overbought = 80, oversold = 20, label = "rsi"):
+    def __init__(self,csdata,config = {}):
 
         self.log = logging.getLogger('crypto')
         #macd settings
-        self.period = period
-        self.overbought = overbought
-        self.oversold = oversold
+        self.period = config.get("period",14)
+        self.overbought = config.get("overbought",80)
+        self.oversold = config.get("oversold",20)
         #candlestick data
         self.csdata = csdata
-        self.label = label
+        self.label = config.get("label","rsi")
 
         self.data = self.calc_value()
         self.analysis = None

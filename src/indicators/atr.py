@@ -5,8 +5,9 @@ from baseindicator import BaseIndicator
 
 class ATR(BaseIndicator):
 
-    def __init__(self,csdata,period,label = "atr"):
-        BaseIndicator.__init__(self,csdata,label,{"period":period})
+    def __init__(self,csdata, config ):#period,label = "atr"):
+        BaseIndicator.__init__(self,csdata,config)
+        self.data = self.get_atr()
 
 
     def get_settings(self):

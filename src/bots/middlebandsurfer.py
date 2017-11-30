@@ -15,11 +15,11 @@ class MiddleBandSurfer(BaseBot):
 
     def refreshData(self):
         self.refreshCandlesticks()
-        self.analyzer.addIndicator("macd",{})
-        self.analyzer.addIndicator("bbands",{"timeperiod":20,"nbdevup":2,"nbdevdn":2})
-        self.analyzer.addIndicator("bbands",{"timeperiod":20,"nbdevup":1.5,"nbdevdn":1.5,"label":"iBBands","chartcolors":["#AA0000","00AA00","0000AA"]},"iBBand")
-        self.analyzer.addIndicator("atr",{"period":14})
-        self.analyzer.addIndicator("rsi",{"overbought":63,"oversold":40,"period":14})
+        self.analyzer.addIndicator("MACD",{})
+        self.analyzer.addIndicator("BBands",{"timeperiod":20,"nbdevup":2,"nbdevdn":2})
+        self.analyzer.addIndicator("BBands",{"timeperiod":20,"nbdevup":1.5,"nbdevdn":1.5,"label":"iBBands","chartcolors":["#AA0000","00AA00","0000AA"]},"iBBand")
+        self.analyzer.addIndicator("ATR",{"period":14})
+        self.analyzer.addIndicator("RSI",{"overbought":63,"oversold":40,"period":14})
         self.analyzer.process()
 
 
@@ -37,23 +37,6 @@ class MiddleBandSurfer(BaseBot):
 
         self.pushSignal("rsi","oversold",rsi.isOversold(),minor=True)
         self.pushSignal("rsi","overbought",rsi.isOverbought(),minor=True)
-
-
-        """
-        #check if price is rising and closes above the middle band
-        if ( self.analyzer.last("closed",3) < bbands.middle() and
-                self.analyzer.last("closed",2) > bbands.middle() and
-                self.analyzer.last("closed") > bbands.middle() and
-                self.checkSignal("rsi","oversold",60) is not None ):
-            self.pushSignal("bband1","buy",10)
-
-        #check if price is dropping and closes below the middle band
-        if ( self.analyzer.last("closed",3) > bbands.middle() and
-                self.analyzer.last("closed",2) < bbands.middle() and
-                self.analyzer.last("closed") < bbands.middle() and
-                self.checkSignal("rsi","overbought",60) is not None ):
-            self.pushSignal("bband2","sell",10)
-        """
 
         messages = []
 
@@ -92,14 +75,20 @@ class MiddleBandSurfer(BaseBot):
             if dband.risingAboveCenter():
                 self.pushSignal("midband","buy",25)
 
+            if dband.settingBelowCenter():
+                self.pushSignal("midband","buy",25)
+
 
         #self.checkSignal("rsi","overbought",60) is not None
-        if rsi.isOverbought():
-            if dband.enteringUpperBand():
-                self.pushSignal("upperband","sell",50)
+        #if rsi.isOverbought():
+        if dband.enteringUpperBand():
+            self.pushSignal("upperband","sell",50)
 
-            if dband.enteringOuterUpperBand():
-                self.pushSignal("upperband","sell",75)
+        if dband.enteringOuterUpperBand():
+            self.pushSignal("upperband","sell",75)
+
+        if dband.risingAboveCenter():
+            self.pushSignal("midband","sell",25)
 
         """
         #check if price goes below the lower band

@@ -1,14 +1,19 @@
 import os,sys,talib,numpy,logging
 from collections import OrderedDict
 from influxdbwrapper import InfluxDbWrapper
+from tools import Tools
 from bittrex import Bittrex
 from trader import Trader
 from coincalc import CoinCalc
+from technicalanalyzer import TechnicalAnalyzer
+
+"""
 from macd import MACD
 from bollingerbands import BBands
 from atr import ATR
 from sma import SMA
 from rsi import RSI
+"""
 
 class Analyzer(object):
 
@@ -23,6 +28,7 @@ class Analyzer(object):
 
         #candlestick chart data
         self.cs = csdata
+        self.ta = TechnicalAnalyzer(csdata)
 
         self.options = {}
 
@@ -44,6 +50,8 @@ class Analyzer(object):
     def addIndicator(self, indicator, options = {}, label = None ):
         if label is None:
             label = indicator
+
+        label = options["label"] = options.get("label",label)
         self.indicators += [{"indicator":indicator,"label":label,"options":options,"object":None}]
 
 
@@ -73,25 +81,14 @@ class Analyzer(object):
             if label is None or len(label) == 0:
                 label = indicator
 
-            if indicator == "macd":
-                macd = MACD(self.cs)
-                indicatorObj["object"] = macd
-                ret[label] = macd.get_analysis()
-            elif indicator == "bbands":
-                bb = BBands(self.cs,**options)
-                indicatorObj["object"] = bb
-                ret[label] = bb.get_analysis()
-            elif indicator == "sma":
-                sma = SMA(self.cs,**options)
-                indicatorObj["object"] = sma
-                ret[label] = sma.get_analysis()
-            elif indicator == "rsi":
-                rsi = RSI(self.cs,**options)
-                indicatorObj["object"] = rsi
-                ret[label] = rsi.get_analysis()
-            elif indicator == "atr":
-                atr = ATR(self.cs,**options)
-                indicatorObj["object"] = atr
-                ret[label] = atr.get_analysis()
+            indicator_class = Tools.loadClass(indicator)
+            if indicator_class:
+                indicator_obj = indicator_class( self.cs, options )
+
+                indicatorObj["object"] = indicator_obj
+                ret[label] = indicator_obj.get_analysis()
+            else:
+                raise Exception("Problem instantiating indicator {}".format(label))
+
 
         return ret

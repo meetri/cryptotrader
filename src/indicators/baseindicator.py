@@ -3,10 +3,10 @@ from collections import OrderedDict
 
 class BaseIndicator(object):
 
-    def __init__(self,csdata,label,config):
+    def __init__(self,csdata,config):
         self.log = logging.getLogger('crypto')
         self.csdata = csdata
-        self.label = label
+        self.label = config.get("label","")
         self.config = config
         self.analysis = None
 

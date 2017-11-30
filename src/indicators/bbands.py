@@ -6,16 +6,17 @@ from baseindicator import BaseIndicator
 class BBands(BaseIndicator):
 
 
-    def __init__(self,csdata, timeperiod=5, nbdevup=2, nbdevdn=2, matype=0,label = "bbands", chartcolors = ["#FF0000","#00FF00","#0000FF"] ):
+    def __init__(self,csdata, config={}):
 
-        BaseIndicator.__init__(self,csdata,label,{"timeperiod":timeperiod,"nbdevup":nbdevup,"nbdevdn":nbdevdn,"matype":matype})
+        BaseIndicator.__init__(self,csdata,config)
 
-        self.timeperiod= timeperiod
-        self.nbdevup = nbdevup
-        self.nbdevdn = nbdevdn
-        self.matype = matype
+        self.timeperiod= config.get("timeperiod",5)
+        self.nbdevup = config.get("nbdevup",2)
+        self.nbdevdn = config.get("nbdevdn",2)
+        self.matype = config.get("matype",0)
+        self.label = config.get("label","BBands")
 
-        self.chartcolors = chartcolors
+        self.chartcolors = config.get("chartcolors",["#FF0000","#00FF00","#0000FF"])
 
         self.get_bb()
 
@@ -34,6 +35,18 @@ class BBands(BaseIndicator):
 
     def get_settings(self):
         return "{}:{}:{}".format(self.timeperiod,self.nbdevup,self.nbdevdn)
+
+
+    def getSlope(self, period = 14 ):
+        slope = None
+        for i in range(1,period+1):
+            k = -1 * i
+            if slope == None and self.data[1][k] != 0:
+                slope = self.data[1][k-1] / self.data[1][k]
+            elif self.data[1][k] != 0 and self.data[1][k-1] != 0:
+                slope = slope / ( self.data[1][k-1] / self.data[1][k] )
+
+        return slope
 
 
     def get_charts(self):
@@ -70,7 +83,7 @@ class BBands(BaseIndicator):
                 sclosed = self.scaleup(self.csdata["closed"])
                 #sclosed = self.csdata["closed"]
 
-                data = talib.BBANDS( numpy.array(sclosed) , self.config["timeperiod"], self.config["nbdevup"], self.config["nbdevdn"], self.config["matype"] )
+                data = talib.BBANDS( numpy.array(sclosed) , self.config["timeperiod"], self.config["nbdevup"], self.config["nbdevdn"], self.config.get("matype",0) )
 
                 self.data = self.scaledown( data )
 

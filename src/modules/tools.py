@@ -1,6 +1,28 @@
 import yaml
+import inspect
+import importlib
 
 class Tools(object):
+
+    def getBotConfig(fn,botname):
+        root = {}
+        cfg = Tools.get_bot_config(fn,botname)
+        if "extend" in cfg:
+            root = Tools.getBotConfig(fn,cfg["extend"])
+
+        for k in cfg:
+            if isinstance(cfg[k],dict):
+                if k not in root:
+                    root[k] = cfg[k]
+                else:
+                    for kk in cfg[k]:
+                        root[k][kk] = cfg[k][kk]
+
+            else:
+                root[k] = cfg[k]
+
+        return root
+
 
     @staticmethod
     def get_bot_config(fn,config):
@@ -26,3 +48,24 @@ class Tools(object):
         else:
             return None
 
+    def loadClass(classname,modulename = None):
+        if not classname:
+            return None
+
+        if modulename is None:
+            if "." in classname:
+                a = classname.split(".")
+                modulename = a[0]
+                classname = a[1]
+            else:
+                modulename = classname.lower()
+        try:
+            module = importlib.import_module(modulename)
+            for x in dir(module):
+                obj = getattr(module, x)
+
+                if x == classname and inspect.isclass(obj):
+                    return obj
+
+        except ImportError as ex:
+            return None

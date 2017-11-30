@@ -304,6 +304,17 @@ angular.module('cryptoai', ['nvd3','components'])
               params: { bot: $location.search().bot }
         }).then( function successCallback(response){
 			$scope.trades = response.data.trades
+      
+      var sumgrowth = 0
+      for ( var trade in $scope.trades ){
+        sumgrowth +=  $scope.trades[trade]["growth"]
+      }
+
+      $scope.trade_summary = {
+        total: $scope.trades.length,
+        growth: sumgrowth
+      }
+
 			$timeout(getBotTrades,5000)
 		}, function errorCallback(response){
 			console.log("failed response from server")

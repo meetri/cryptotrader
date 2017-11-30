@@ -6,9 +6,9 @@ from order import Order
 
 class BittrexManager(ExchangeManager):
 
-    def __init__(self, key = None, secret = None, config = {} ):
+    def __init__(self, config = {} ):
         ExchangeManager.__init__(self, "BTRX", config )
-        self.api = Bittrex(key,secret)
+        self.api = Bittrex()
         self.balance = None
         self.log = logging.getLogger('crypto')
 
