@@ -26,11 +26,11 @@ class MiddleBandSurfer(BaseBot):
     def process(self):
         self.refreshData()
 
-        macd = self.analyzer.getIndicator("macd")
-        bbands = self.analyzer.getIndicator("bbands")
-        ibbands = self.analyzer.getIndicator("iBBand")
-        rsi = self.analyzer.getIndicator("rsi")
-        atr = self.analyzer.getIndicator("atr")
+        macd = self.analyzer.getIndicator("MACD")
+        bbands = self.analyzer.getIndicator("BBands")
+        ibbands = self.analyzer.getIndicator("iBBands")
+        rsi = self.analyzer.getIndicator("RSI")
+        atr = self.analyzer.getIndicator("ATR")
 
         dband = DoubleBand(self.analyzer,outer=bbands,inner=ibbands)
 

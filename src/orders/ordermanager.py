@@ -66,7 +66,7 @@ class OrderManager(object):
                 return True
 
 
-    def genSellOrder(self, sellorder = None):
+    def genSellOrders(self, sellorder = None):
         """find active trade to sell"""
 
         if not sellorder and self.tradeTick("sell"):
@@ -89,14 +89,8 @@ class OrderManager(object):
 
 
         self.log.info("found {} orders up for sale".format(len(upforsale)))
-        orderforsale = None
-        for order in upforsale:
-            if orderforsale is None:
-                orderforsale = order
-            elif orderforsale.rate > order.rate:
-                orderforsale = order
-
-        if orderforsale:
+        orders = []
+        for orderforsale in upforsale:
             orderforsale.status = Order.UPFORSALE
             ref = orderforsale.save()
             #print("saving orderforsale: {} {}".format(orderforsale.ref_id,ref))
@@ -110,10 +104,9 @@ class OrderManager(object):
                     }
 
             self.trade_history["sell"].append({"time":time.time(),"order": neworder})
-            return neworder
+            orders += [ neworder ]
 
-        else:
-            return None
+        return orders
 
 
     def genBuyOrder(self):
@@ -166,20 +159,18 @@ class OrderManager(object):
         order = None
         botsignal = self.bot.getSignal()
 
-        if botsignal["count"] == 1:
-            if botsignal.get("signal") == "buy":
-                order = self.genBuyOrder()
+        if botsignal.get("signal") == "buy":
+            order = self.genBuyOrder()
+            if order:
                 self.log.info("generated buy order: {}".format(order))
-            elif botsignal.get("signal") == "sell":
-                order = self.genSellOrder()
-                self.log.info("genereated sell order: {}".format(order))
-        else:
-            # need to look into how to best manage trade frequency, for now
-            self.log.info("trade rejected, only 1 trade per candle allowed")
-            self.bot.debug.append("trade rejected, only 1 trade per candle allowed")
+                self.send(Order(order))
 
-        if order:
-            return self.send(Order(order))
+        elif botsignal.get("signal") == "sell":
+            orders = self.genSellOrders()
+            for order in orders:
+                self.log.info("generated sell order: {}".format(order))
+                self.send(Order(order))
+
 
     def getOpenOrders(self):
         openorders = Order.findByBotActive(self.bot.getName(), self.bot.getMarket(),self.exchange.getName())
@@ -193,11 +184,11 @@ class OrderManager(object):
                 g = Tools.calculateGrowth( rate, order.rate)
                 if g < self.bot.stop_loss:
                     self.log.info("{} stop loss triggered on {} with {} drop".format(order.market,order.ref_id,g))
-                    sellorder = self.genSellOrder(order)
-                    self.log.info("sell order status: {}".format(order.status))
-                    if sellorder:
-                        self.send( Order(sellorder) )
-                        stopped += 1
+                    sellorders = self.genSellOrders(order)
+                    for sellorder in sellorders:
+                        if sellorder:
+                            self.send( Order(sellorder) )
+                            stopped += 1
 
 
         #if stopped > 0:

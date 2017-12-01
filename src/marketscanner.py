@@ -23,5 +23,4 @@ for markets in marketlist:
                         print(res)
             except Exception as ex:
                 print("error: {}".format(ex))
-            #print(mybot.process())
 

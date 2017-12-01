@@ -11,7 +11,7 @@ from ordermanager import OrderManager
 
 logger = logging.getLogger('crypto')
 botsel = os.getenv("bot","generic-backtest")
-marketoverride = os.getenv("market","")
+marketoverride = os.getenv("market","btc-ltc")
 
 config = Tools.getBotConfig("mybots.yaml",botsel)
 
@@ -30,7 +30,7 @@ def main(mybot):
             logger.error(ex)
             #raise ex
 
-        time.sleep(0.5)
+        #time.sleep(0.5)
 
 
 if __name__ == "__main__":

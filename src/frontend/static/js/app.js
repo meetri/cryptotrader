@@ -283,6 +283,7 @@ angular.module('cryptoai', ['nvd3','components'])
               params: { bot: $location.search().bot }
         }).then( function successCallback(response){
 			$scope.bot  = response.data.bot;
+      $scope.backtest = response.data.backtest;
 			$scope.indicators = response.data.indicators;
 			$scope.signals = response.data.signals;
 			$scope.signal_history = response.data.signal_history;

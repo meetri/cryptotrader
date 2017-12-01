@@ -10,7 +10,7 @@ class MACD(object):
         self.fastperiod = config.get("fastperiod",12)
         self.slowperiod = config.get("slowperiod",26)
         self.signalperiod = config.get("signalperiod",9)
-        self.label = "macd"
+        self.label = config.get("label","macd")
 
         #number of segments after bull trend does a buy action occur
         self.bull_lag = config.get("bull_lag",1)

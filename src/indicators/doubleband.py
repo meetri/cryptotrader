@@ -6,6 +6,29 @@ class DoubleBand(object):
         self.iband = inner
 
 
+    def debug(self,messages):
+        if self.enteringLowerBand():
+            messages.append("entering lower band")
+        if self.exitingLowerOuterBand():
+            messages.append("exiting lower outer band")
+        if self.enteringLowerOuterBand():
+            messages.append("entering lower outer band")
+        if self.exitingLowerOuterBand():
+            messages.append("exiting lower outer band")
+        if self.risingAboveCenter():
+            messages.append("rising above center")
+        if self.enteringUpperBand():
+            messages.append("entering upper band")
+        if self.exitingOuterUpperBand():
+            messages.append("exiting outer upper band")
+        if self.enteringOuterUpperBand():
+            messages.append("entering outer upper band")
+        if self.exitingUpperBand():
+            messages.append("exiting upper band")
+        if self.settingBelowCenter():
+            messages.append("setting below center")
+
+
     def enteringUpperBand(self):
         if ( self.analyzer.last("closed",2) < self.iband.top(2) and
                 self.analyzer.last("closed") >= self.iband.top() ):

@@ -11,6 +11,7 @@ class BaseBot(object):
     #def __init__(self, market,budget, tradelimit, candlestick = "5m",timeframe = "24h",  name = None, config = {} ):
     def __init__(self, name, config):
 
+        self.cycles = 0
         self.config = config
         self.name = name
         self.market = config.get("market",None)
@@ -57,8 +58,14 @@ class BaseBot(object):
         ts = time.time() - ofs
         ts = ts - ( ts % 3600 ) - config.get("run_offset",0)
         self.backtest_tick = ts
+        self.backtest_startprice = None
+        self.backtest_endprice = 0
 
         self.run_interval = config.get("run_interval",300)
+
+
+
+
 
         if self.backtest:
             random.seed()
@@ -142,6 +149,7 @@ class BaseBot(object):
 
         self.getOrderManager().checkStops()
 
+        self.cycles += 1
         return res
 
 
@@ -149,6 +157,9 @@ class BaseBot(object):
         if self.backtest:
             bt_time = "{}s".format(int(self.backtest_tick))
             self.csdata = self.trader.get_candlesticks(self.timeframe,self.candlestick,dateOffset=bt_time)
+            self.backtest_endprice = self.csdata["closed"][-1]
+            if self.backtest_startprice is None:
+                self.backtest_startprice = self.csdata["closed"][-1]
             self.backtest_tick += self.run_interval
             if self.backtest_tick > time.time():
                 self.log.info("backtest complete")
@@ -179,6 +190,7 @@ class BaseBot(object):
     def info(self):
         return {
                 "name": self.name,
+                "cycle": self.cycles,
                 "signal": self.signal,
                 "last": self.marketRate(),
                 "time" : self.analyzer.last("time"),

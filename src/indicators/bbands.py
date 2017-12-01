@@ -14,12 +14,15 @@ class BBands(BaseIndicator):
         self.nbdevup = config.get("nbdevup",2)
         self.nbdevdn = config.get("nbdevdn",2)
         self.matype = config.get("matype",0)
-        self.label = config.get("label","BBands")
+        self.label = config.get("label","bbands")
 
         self.chartcolors = config.get("chartcolors",["#FF0000","#00FF00","#0000FF"])
 
-        self.get_bb()
+        self.get_analysis()
 
+
+    def width(self,index=1):
+        return (self.top(index) - self.low(index)) / self.middle(index)
 
     def top(self,index=1):
         index = index * -1
@@ -151,8 +154,8 @@ class BBands(BaseIndicator):
         res["analysis"]["top"] = bbands["t"]
         res["analysis"]["mid"] = bbands["m"]
         res["analysis"]["low"] = bbands["l"]
-        res["analysis"]["width"] = bbands["t"]-bbands["l"]
-        res["analysis"]["order"] = ["top","mid","low"]
+        res["analysis"]["width"] = self.width()
+        res["analysis"]["order"] = ["top","mid","low","width"]
 
         self.analysis = res
         return res

@@ -39,7 +39,6 @@ class Trader(object):
             cs["basevolume"].extend([point["basevolume"]])
             cs["time"].extend([point["time"]])
 
-
         if psize == 0:
             raise Exception("no market data for {} at {}".format(self.market,dateOffset))
 

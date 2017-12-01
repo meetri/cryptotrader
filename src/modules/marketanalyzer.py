@@ -28,7 +28,7 @@ class Analyzer(object):
 
         #candlestick chart data
         self.cs = csdata
-        self.ta = TechnicalAnalyzer(csdata)
+        self.ta = TechnicalAnalyzer(self)
 
         self.options = {}
 
@@ -59,36 +59,29 @@ class Analyzer(object):
     def add_indicator(self, indicator, options = {}, label = None ):
         return self.addIndicator(indicator,options,label)
 
+    def saveIndicator(self, label, indicator ):
+        self.indicators += [{"label":label,"object":indicator}]
+
 
     def process(self):
-        ath = 0
-        for v in self.cs["high"]:
-            if v > ath:
-                ath = v
-
-        atl = 9999999
-        for v in self.cs["low"]:
-            if v < atl:
-                atl = v
-
         ret ={}
-
         for indicatorObj in self.indicators:
-            indicator = indicatorObj.get("indicator")
-            label = indicatorObj.get("label")
-            options = indicatorObj.get("options",{})
+            if "object" not in indicatorObj:
+                indicator = indicatorObj.get("indicator")
+                label = indicatorObj.get("label")
+                options = indicatorObj.get("options",{})
 
-            if label is None or len(label) == 0:
-                label = indicator
+                if label is None or len(label) == 0:
+                    label = indicator
 
-            indicator_class = Tools.loadClass(indicator)
-            if indicator_class:
-                indicator_obj = indicator_class( self.cs, options )
+                indicator_class = Tools.loadClass(indicator)
+                if indicator_class:
+                    indicator_obj = indicator_class( self.cs, options )
 
-                indicatorObj["object"] = indicator_obj
-                ret[label] = indicator_obj.get_analysis()
-            else:
-                raise Exception("Problem instantiating indicator {}".format(label))
+                    indicatorObj["object"] = indicator_obj
+                    ret[label] = indicator_obj.get_analysis()
+                else:
+                    raise Exception("Problem instantiating indicator {}".format(label))
 
 
         return ret

@@ -1,12 +1,13 @@
 import json,time,datetime,logging
 from order import Order
+from tools import Tools
 
 class BotDataProvider(object):
 
     def __init__(self,bot):
         self.bot = bot
         self.log = logging.getLogger('crypto')
-        self.chartsize = -200
+        self.chartsize = 0
 
 
     def get_tacharts(self):
@@ -113,6 +114,13 @@ class BotDataProvider(object):
                 "signal_history": self.bot.all_signals,
                 "debug" : self.bot.debug
                 }
+
+            if self.bot.backtest:
+                result["backtest"] = {
+                        "startprice" : self.bot.backtest_startprice,
+                        "endprice": self.bot.backtest_endprice,
+                        "change": "{:.2f}".format(Tools.calculateGrowth(self.bot.backtest_endprice,self.bot.backtest_startprice))
+                        }
 
         return json.dumps(result)
 

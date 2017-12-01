@@ -13,9 +13,10 @@ class RSI(object):
         #candlestick data
         self.csdata = csdata
         self.label = config.get("label","rsi")
+        self.analysis = None
 
         self.data = self.calc_value()
-        self.analysis = None
+        self.get_analysis()
 
 
     def isOverbought(self,index = 1):
