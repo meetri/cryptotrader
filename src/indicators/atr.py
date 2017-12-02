@@ -7,7 +7,10 @@ class ATR(BaseIndicator):
 
     def __init__(self,csdata, config ):#period,label = "atr"):
         BaseIndicator.__init__(self,csdata,config)
-        self.data = self.get_atr()
+        self.data = None
+        self.analysis = None
+        self.get_analysis()
+
 
 
     def get_settings(self):
@@ -38,7 +41,7 @@ class ATR(BaseIndicator):
                 self.data = talib.ATR( numpy.array(self.csdata["high"]), numpy.array(self.csdata["low"]),numpy.array(self.csdata["closed"]),self.config["period"])
             except Exception as ex:
                 print("Error: {}".format(ex))
-                self.data = None
+                self.data = 0
                 raise ex
 
         return self.data

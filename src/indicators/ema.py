@@ -13,8 +13,9 @@ class EMA(BaseIndicator):
 
         BaseIndicator.__init__(self,csdata,config)
 
-        self.data = self.get_ema()
+        self.data = None
         self.analysis = None
+        self.get_analysis()
 
 
     def get_settings(self):
