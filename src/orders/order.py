@@ -69,6 +69,7 @@ class Order(object):
         os = Order.STATUS
 
         growth = ""
+        profit = 0
         if self.order_type == Order.BUY:
 
             if self.status == Order.COMPLETED:
@@ -76,6 +77,11 @@ class Order(object):
 
             if self.status == Order.FILLED or self.status == Order.COMPLETED:
                 growth = "{:.02f}".format(Tools.calculateGrowth(lastrate,self.rate))
+
+                if self.status == Order.COMPLETED:
+                    profit = ( float(self.qty) * float(lastrate)) - ( float(self.qty) * float(self.rate) )
+                    #profit = "{:.08f}".format(profit)
+
 
         if growth:
             growth = float(growth)
@@ -88,11 +94,12 @@ class Order(object):
                 "qty": "{:.08f}".format(self.qty),
                 "rate": "{:.08f}".format(self.rate),
                 "growth": growth,
+                "profit": profit,
                 "status": os[self.status],
                 "time": self.created_ts
                 }
 
-        if self.status == Order.COMPLETED:
+        if self.order_type == Order.BUY and self.status == Order.COMPLETED:
             res["sold_at"] = "{:.08f}".format(lastrate)
 
         return res

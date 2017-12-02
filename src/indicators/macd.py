@@ -18,8 +18,10 @@ class MACD(object):
         #candlestick data
         self.csdata = csdata
 
-        self.data = self.get_macd()
+        self.data = None
         self.analysis = None
+
+        self.get_analysis()
 
 
     def get_tertiary_charts(self):
@@ -109,6 +111,45 @@ class MACD(object):
                 "length": segments
                 }
 
+    def getLast(self,index = 1):
+        index = -1 * index
+        return {
+                "macd": self.data[0][index],
+                "signal": self.data[1][index],
+                "history": self.data[2][index],
+                }
+
+    def getTrend(self,ofs = 1):
+        cur = self.getLast(ofs)
+        if cur["history"] > 0:
+            return "bull"
+        else:
+            return "bear"
+
+    def getTrendLength(self):
+        trend = self.getTrend()
+        trendLength = 0
+        for i in range(2,len(self.data[0])):
+            if self.getTrend(i) != trend:
+                return trendLength
+            else:
+                trendLength+=1
+
+        return trendLength
+
+    def getSignal(self):
+        prev = self.getLast(2)
+        cur = self.getLast()
+
+        signal = None
+        if cur["history"] > 0 and prev["history"] < 0:
+            signal = "buy"
+        elif cur["history"] < 0 and prev["history"] > 0:
+            signal = "sell"
+
+        return signal
+
+
 
     def get_analysis(self ):
         if self.data is None:
@@ -158,13 +199,13 @@ class MACD(object):
                 }
 
         res["analysis"]["name"] = "{}:{}".format(self.get_name(),self.get_settings())
-        res["analysis"]["signal"] = action
+        res["analysis"]["signal"] = self.getSignal()
         res["analysis"]["trend"] = tdata["trend"]
         res["analysis"]["trendlength"] = tdata["length"]
         res["analysis"]["macd"] = macd_all[0][-1]
         res["analysis"]["sig"] = macd_all[1][-1]
         res["analysis"]["history"] = macd_all[2][-1]
-        res["analysis"]["order"] = ["macd","sig","history"]
+        res["analysis"]["order"] = ["macd","sig","history","length"]
 
         self.analysis = res
         return res
@@ -174,6 +215,7 @@ class MACD(object):
         newres["macd"] = "{:.12f}".format(newres["macd"])
         newres["sig"] = "{:.12f}".format(newres["sig"])
         newres["history"] = "{:.12f}".format(newres["history"])
+        newres["length"] = self.getTrendLength()
 
         return newres
 

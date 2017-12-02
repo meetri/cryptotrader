@@ -28,6 +28,9 @@ class DoubleBand(object):
         if self.settingBelowCenter():
             messages.append("setting below center")
 
+        return messages
+
+
 
     def enteringUpperBand(self):
         if ( self.analyzer.last("closed",2) < self.iband.top(2) and

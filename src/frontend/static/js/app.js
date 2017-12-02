@@ -307,13 +307,21 @@ angular.module('cryptoai', ['nvd3','components'])
 			$scope.trades = response.data.trades
       
       var sumgrowth = 0
+      var sumprofit = 0
+      var active_count =0
       for ( var trade in $scope.trades ){
         sumgrowth +=  $scope.trades[trade]["growth"]
+        sumprofit +=  $scope.trades[trade]["profit"]
+        if ( $scope.trades[trade]["status"] != "completed" ){
+          active_count += 1
+        }
       }
 
       $scope.trade_summary = {
         total: $scope.trades.length,
-        growth: sumgrowth
+        active_total: active_count,
+        growth: sumgrowth,
+        profit: sumprofit
       }
 
 			$timeout(getBotTrades,5000)

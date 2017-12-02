@@ -16,9 +16,9 @@ class TechnicalAnalyzer(object):
 
     def getema(self,period = 14,label="ema"):
         tag = "ema:{}".format(period)
-        ema = self.analyzer.findIndicator(tag)
+        ema = self.analyzer.getIndicator(tag)
         if not ema:
-            ema = EMA(self.csdata,{"period":period},label)
+            ema = EMA(self.csdata,{"period":period,"label":label})
             self.analyzer.saveIndicator(tag,ema)
         return ema
 
@@ -29,7 +29,7 @@ class TechnicalAnalyzer(object):
 
     def getsma(self,period = 14,label="sma"):
         tag = "sma:{}".format(period)
-        sma = self.analyzer.findIndicator(tag)
+        sma = self.analyzer.getIndicator(tag)
         if not sma:
             sma = SMA(self.csdata,{"period":period,"label":label})
             self.analyzer.saveIndicator(tag,sma)
@@ -37,20 +37,22 @@ class TechnicalAnalyzer(object):
 
 
     def sma(self, period = 14,label="sma" ):
-        return self.getsma(period).data[-1]
+        return self.getsma(period,label).data[-1]
+
+
+    def atr(self, period = 14,label="atr" ):
+        return self.getatr(period,label).data[-1]
 
 
     def getatr(self,period = 14,label="atr"):
         tag = "atr:{}".format(period)
         ind = self.analyzer.getIndicator(tag)
         if not ind:
-            ind = SMA(self.csdata,{"period":period,"label":label})
+            ind = ATR(self.csdata,{"period":period,"label":label})
             self.analyzer.saveIndicator(tag,ind)
+
         return ind
 
-
-    def atr(self, period = 14,label="atr" ):
-        return self.getatr(14).data[-1]
 
 
     def getrsi(self,period = 14,label="rsi"):
@@ -82,7 +84,7 @@ class TechnicalAnalyzer(object):
 
 
     def getmacd(self, fastperiod=12, slowperiod=26, signalperiod=9,label="macd" ):
-        tag = "macd:{}:{}:{}:{}".format(fastperiod,slowperiod,signalperiod)
+        tag = "macd:{}:{}:{}".format(fastperiod,slowperiod,signalperiod)
         ind = self.analyzer.getIndicator(tag)
         if not ind:
             ind = MACD(self.csdata,{"fastperiod":fastperiod,"slowperiod":slowperiod,"signalperiod":signalperiod,"label":label})

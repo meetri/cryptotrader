@@ -1,3 +1,6 @@
+"""
+OBSOLETE - DELETE THIS FILE !! - now called order.py
+"""
 import os,sys,logging,time,json
 import psycopg2.extras
 from exchange import Exchange

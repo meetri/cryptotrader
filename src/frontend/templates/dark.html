@@ -105,12 +105,14 @@
                 <h5>Trades</h5>
                 <div>
                   <span class='navitem'>Total Trades</span> <span class='smallitem'>{{trade_summary["total"]}}</span>
+                  <span class='navitem'>Active Trades</span> <span class='smallitem'>{{trade_summary["active_total"]}}</span>
                   <span class='navitem'>Growth</span> <span class='smallitem'>{{trade_summary["growth"]}}</span>
+                  <span class='navitem'>Profit</span> <span class='smallitem'>{{trade_summary["profit"]}}</span>
                   <span class='navitem'>Start</span> <span class='smallitem'>{{backtest["startprice"]}}</span>
                   <span class='navitem'>HODL Growth</span> <span class='smallitem'>{{backtest["change"]}}</span>
                 </div>
                 <table class="table table-inversei table-bordered">
-                  <thead> <tr><th>Type</th><th>Status</th><th>Quantity</th><th>Rate</th><th>Growth</th><th>Time</th></tr> </thead>
+                  <thead> <tr><th>Type</th><th>Status</th><th>Quantity</th><th>Rate</th><th>Growth</th><th>Profit</th><th>Time</th></tr> </thead>
                 <tbody>
                     <tr ng-repeat="trade in trades">
                       <td>{{trade["order_type"]}}</td>
@@ -118,6 +120,7 @@
                       <td>{{trade["qty"]}}</td>
                       <td>{{trade["rate"]}}</td>
                       <td animate-on-change="trade['growth']">{{trade["growth"]}}</td>
+                      <td animate-on-change="trade['profit']">{{trade["profit"]}}</td>
                       <td>{{trade["time"]*1000 | date : "MM/dd/yy HH:mm:ss" }}</td>
                     </tr>
                 </tbody></table>

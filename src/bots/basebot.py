@@ -16,6 +16,7 @@ class BaseBot(object):
         self.name = name
         self.market = config.get("market",None)
         self.budget = config.get("budget",0)
+        self.initial_budget = self.budget
         self.tradelimit = config.get("tradelimit",0)
 
         if not self.market:

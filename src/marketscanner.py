@@ -6,6 +6,7 @@ from tools import Tools
 from influxdbwrapper import InfluxDbWrapper
 from bottools import BotTools
 from mabot import MABot
+from ma2bot import MA2Bot
 
 threshold = 2;
 db = InfluxDbWrapper.getInstance()
@@ -15,7 +16,7 @@ marketlist = db.raw_query("""SHOW TAG VALUES WITH KEY = {}""".format("marketname
 for markets in marketlist:
     for market in markets:
         if "BTC-" in market["value"]:
-            mybot = MABot( {"market": market["value"]} )
+            mybot = MA2Bot( {"market": market["value"]} )
             try:
                 res = mybot.process()
                 if res["uptrend"]:

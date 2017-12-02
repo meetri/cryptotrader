@@ -42,12 +42,15 @@ class BotDataProvider(object):
 
         pricechart = { "color":"#6BF","key": "Price", "type": "line", "yAxis": 1, "values": [] }
         for i in range(0,len(self.bot.csdata["closed"])):
-            ts = time.mktime(datetime.datetime.strptime(self.bot.csdata["time"][i], "%Y-%m-%dT%H:%M:%SZ").timetuple())
-            if self.bot.csdata["closed"][i] > 0:
-                pricechart["values"].append({
-                    "x": ts,
-                    "y": self.bot.csdata["closed"][i]
-                })
+            if len(self.bot.csdata["time"]) > i:
+                ts = time.mktime(datetime.datetime.strptime(self.bot.csdata["time"][i], "%Y-%m-%dT%H:%M:%SZ").timetuple())
+                if self.bot.csdata["closed"][i] > 0:
+                    pricechart["values"].append({
+                        "x": ts,
+                        "y": self.bot.csdata["closed"][i]
+                    })
+            else:
+                self.log.error("TACharts: missing time data index: {} time data length: {}".format(i,len(self.bot.csdata["time"])))
 
         pricechart["values"] = pricechart["values"][self.chartsize:]
         allcharts.append(pricechart)
@@ -63,19 +66,22 @@ class BotDataProvider(object):
         fullchart = []
         chart_corrected = 0
         for i in range(0,len(self.bot.csdata["open"])):
-            ts = time.mktime(datetime.datetime.strptime(self.bot.csdata["time"][i], "%Y-%m-%dT%H:%M:%SZ").timetuple())
-            if self.bot.csdata["open"][i] > 0:
-                fullchart.append({
-                    "date": ts,
-                    "open": self.bot.csdata["open"][i],
-                    "close": self.bot.csdata["closed"][i],
-                    "high": self.bot.csdata["high"][i],
-                    "low": self.bot.csdata["low"][i],
-                    "volume": self.bot.csdata["volume"][i],
-                    "adjusted": 0,
-                    })
+            if len(self.bot.csdata["time"]) > i:
+                ts = time.mktime(datetime.datetime.strptime(self.bot.csdata["time"][i], "%Y-%m-%dT%H:%M:%SZ").timetuple())
+                if self.bot.csdata["open"][i] > 0:
+                    fullchart.append({
+                        "date": ts,
+                        "open": self.bot.csdata["open"][i],
+                        "close": self.bot.csdata["closed"][i],
+                        "high": self.bot.csdata["high"][i],
+                        "low": self.bot.csdata["low"][i],
+                        "volume": self.bot.csdata["volume"][i],
+                        "adjusted": 0,
+                        })
+                else:
+                    chart_corrected += 1
             else:
-                chart_corrected += 1
+                self.log.error("getChart: missing time data index: {} time data length: {}".format(i,len(self.bot.csdata["time"])))
 
         return [{ "errors": chart_corrected,"values" : fullchart }]
 

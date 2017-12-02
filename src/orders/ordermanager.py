@@ -151,8 +151,22 @@ class OrderManager(object):
         if refresh or self.bot_orders is None:
             results = Order.findByBot(self.bot.getName(),self.bot.getMarket(),self.exchange.getName())
             self.bot_orders = results.data["results"]
+            self.recalculateBudget()
+
 
         return self.bot_orders
+
+
+    def recalculateBudget(self):
+        totalProfit = 0
+        for order in self.bot_orders:
+            if order.order_type == order.BUY and order.status == Order.COMPLETED:
+                profit = order.getView()["profit"]
+                totalProfit += profit
+
+        self.bot.budget = self.bot.initial_budget + totalProfit
+        self.bot.config["budget"] = self.bot.initial_budget + totalProfit
+
 
 
     def processSignal(self):

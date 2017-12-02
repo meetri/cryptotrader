@@ -11,7 +11,7 @@ from ordermanager import OrderManager
 
 logger = logging.getLogger('crypto')
 botsel = os.getenv("bot","generic-backtest")
-marketoverride = os.getenv("market","btc-ltc")
+marketoverride = os.getenv("market","btc-emc2")
 
 config = Tools.getBotConfig("mybots.yaml",botsel)
 

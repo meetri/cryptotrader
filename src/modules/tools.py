@@ -46,7 +46,7 @@ class Tools(object):
         if start and current:
             return (( float(start) - float(current)) / float(start) ) * 100
         else:
-            return None
+            return 0
 
     def loadClass(classname,modulename = None):
         if not classname:
