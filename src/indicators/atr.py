@@ -50,6 +50,17 @@ class ATR(BaseIndicator):
         newres = dict(self.analysis["analysis"])
         return newres
 
+    def get_chart_metric_colors(self,label):
+        return "#999"
+
+    def get_chart_metric_keys(self):
+        return ["atr"]
+
+    def get_chart_metrics(self,index = 0, scale = 0):
+        if scale == 4 and numpy.isnan(self.data[index]):
+            return {
+                "atr": self.data[index],
+            }
 
     def get_analysis(self):
         if self.data is None:

@@ -16,7 +16,8 @@ class BBands(BaseIndicator):
         self.matype = config.get("matype",0)
         self.label = config.get("label","bbands")
 
-        self.chartcolors = config.get("chartcolors",["#FF0000","#00FF00","#0000FF"])
+        self.chartcolors = config.get("chartcolors",["tomato","moccasin","limegreen"])
+        self.chart_metric_keys = config.get("chartkeys",["{}-top".format(self.label),"{}-mid".format(self.label),"{}-low".format(self.label)])
 
         self.get_analysis()
 

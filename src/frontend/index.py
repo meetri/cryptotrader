@@ -13,7 +13,7 @@ app = Flask (__name__)
 
 @app.route("/mybot", methods = ['GET'])
 def mybot():
-    return render_template("dark.html")
+    return render_template("newdark.html")
 
 
 @app.route("/_botinfo")
@@ -35,6 +35,13 @@ def tacharts():
     port = int(request.args["bot"])
     sock = TcpSock("127.0.0.1", port )
     response = json.loads(sock.get("tacharts"))
+    return jsonify(response)
+
+@app.route("/_amcharts")
+def amcharts():
+    port = int(request.args["bot"])
+    sock = TcpSock("127.0.0.1", port )
+    response = json.loads(sock.get("amcharts"))
     return jsonify(response)
 
 

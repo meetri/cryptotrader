@@ -28,6 +28,10 @@ RUN npm install console-stamp
 
 ENV LD_LIBRARY_PATH=/usr/local/lib
 
+COPY vim_runtime /root/.vim_runtime
+COPY configs/vimrc /root/.vimrc
+COPY configs/tmux /root/.tmux.conf
+
 COPY src /opt/crypto
 WORKDIR /opt/crypto/
 

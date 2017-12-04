@@ -5,8 +5,9 @@ class RSI(object):
 
     def __init__(self,csdata,config = {}):
 
+        self.config = config
         self.log = logging.getLogger('crypto')
-        #macd settings
+        #macd setting
         self.period = config.get("period",14)
         self.overbought = config.get("overbought",80)
         self.oversold = config.get("oversold",20)
@@ -15,8 +16,12 @@ class RSI(object):
         self.label = config.get("label","rsi")
         self.analysis = None
 
+        self.chartcolors = config.get("chartcolors",["#FFF"])
+        self.chart_metric_keys = config.get("chartkeys",[self.label])
+
         self.data = self.calc_value()
         self.get_analysis()
+        self.chart_scale = 2
 
 
     def isOverbought(self,index = 1):
@@ -167,6 +172,22 @@ class RSI(object):
 
         self.analysis = res
         return res
+
+    def get_chart_metric_colors(self,label):
+        return "#999"
+
+    def get_chart_scale(self):
+        return self.chart_scale
+
+    def get_chart_metric_keys(self):
+        return self.chart_metric_keys
+
+
+    def get_chart_metrics(self,index = 0, scale = 0):
+            if not numpy.isnan(self.data[index]):
+                return {
+                    "rsi": self.data[index],
+                }
 
     def format_view(self):
         newres = dict(self.analysis["analysis"])

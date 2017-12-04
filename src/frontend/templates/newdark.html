@@ -1,0 +1,145 @@
+<!doctype html>
+<html>
+  <head>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.6/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.6/angular-animate.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.6/angular-aria.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.6/angular-messages.min.js"></script>
+
+    <script src="https://www.amcharts.com/lib/3/amcharts.js"></script>
+    <script src="https://www.amcharts.com/lib/3/serial.js"></script>
+    <script src="https://www.amcharts.com/lib/3/amstock.js"></script>
+
+
+    <script src="https://www.amcharts.com/lib/3/plugins/dataloader/dataloader.min.js"></script>
+    <script src="https://www.amcharts.com/lib/3/plugins/export/export.min.js"></script>
+
+    <link rel="stylesheet" href="https://www.amcharts.com/lib/3/plugins/export/export.css" type="text/css" media="all" />
+    <script src="https://www.amcharts.com/lib/3/themes/black.js"></script>
+
+    <script src="static/js/ui-bootstrap.js"></script>
+
+    <script src="static/js/components.js"></script>
+    <script src="static/js/app2.js"></script>
+    <script src="static/js/amchart-test2.js"></script>
+
+    <link rel="stylesheet" href="https://bootswatch.com/4/slate/bootstrap.min.css">
+    <link rel="stylesheet" href="static/css/crypto2.css">
+
+  </head>
+{% raw %}
+<body ng-app="cryptoai" ng-controller="botController" style='background-color:#101010'>
+
+	<div class='container-fluid'>
+        <div class="row topnav">
+            <span class='navitem' style='margin-right:2rem;'>{{bot['name']}}</span>
+            <span class='navitem' style='margin-right:2rem;'>{{bot['config']['market']}}</span>
+            <span class='navitem'>Signal</span> <span animate-on-change="bot['signal']['signal']" style='margin-right:2rem;'>{{bot['signal']["signal"]}}</span>
+            <span class='navitem'>Candlesize</span> <span style='margin-right:2rem;'>{{bot['config']['candlestick']}}</span>
+            <span class='navitem'>Last</span> <span animate-on-change="bot['last']" style='margin-right:2rem;'>{{bot['last']}}</span>
+            <span class='navitem'>Cycle</span> <span animate-on-change="bot['cycle']" style='margin-right:2rem;'>{{bot['cycle']}}</span>
+            <span class='smallitem'>Budget: {{bot['config']['budget']}}</span>
+            <span class='smallitem'>Max Trades: {{bot['config']['tradelimit']}}</span>
+            <span class='smallitem'>{{bot['config']['candlestick']}} Candles</span>
+            <span class='navitem'>Candle Time:</span> <span animate-on-change="bot['time']" class="text-right" style='margin-right:2rem'>{{bot['time']}}</span>
+            <span class='navitem'>Server Time:</span> <span animate-on-change="bot['servertime']" class="text-right" style='margin-right:2rem'>{{bot['servertime']}}</span>
+        </div>
+        <div class="row">
+            <div class="col-sm-8">
+                <h5>Indicators</h5>
+                <table class="table table-striped table-bordered table-condensed">
+                    <thead><tr> <th>Name</th> <th>Signal</th><th>Trend</th><th>Details</th> </tr></thead>
+                <tbody>
+                <tr ng-repeat="indicator in indicators">
+                    <td>{{indicator['name']}}</td>	
+                    <td>{{indicator['signal']}}</td>	
+                    <td>{{indicator['trend']}}</td>	
+                    <td><span style='margin-right:4px'x ng-repeat="key in indicator.order"><span class='navitem'>{{key}}:</span> <span class=''>{{indicator[key]}}</span></td>
+                </tr> </tbody> </table>
+                <h5>Technical Analysis Charts</h5>
+                <div ng-controller="tacharts">
+                    <div id="chartdiv"></div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <h5>Logs</h5>
+                <table class='table table-bordered table-condensed table-striped'>
+                    <tbody>
+                        <tr ng-repeat="msg in logs"><td>{{msg}}</td></tr>
+                    </tbody>
+                </table>
+                <h5>Signals</h5>
+                <table class='table table-bordered table-condensed table-striped'>
+                    <thead>
+                      <tr><th>Name</th><th>Signal</th><th>Strength</th><th>Time</th><th>Count</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="(signal,data) in signals">
+                          <td>{{signal}}</td>
+                          <td animate-on-change="data['signal']">{{data["signal"]}}</td>
+                          <td animate-on-change="data['strength']">{{data["strength"]}}</td>
+                          <td animate-on-change="data['cstime']">{{data["cstime"]}}</td>
+                          <td animate-on-change="data['count']">{{data["count"]}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <h5>Trades</h5>
+                <div>
+                  <span class='navitem'>Total Trades</span> <span class='smallitem'>{{trade_summary["total"]}}</span>
+                  <span class='navitem'>Active Trades</span> <span class='smallitem'>{{trade_summary["active_total"]}}</span>
+                  <span class='navitem'>Growth</span> <span class='smallitem'>{{trade_summary["growth"]}}</span>
+                  <span class='navitem'>Profit</span> <span class='smallitem'>{{trade_summary["profit"]}}</span>
+                  <span class='navitem'>Start</span> <span class='smallitem'>{{backtest["startprice"]}}</span>
+                  <span class='navitem'>HODL Growth</span> <span class='smallitem'>{{backtest["change"]}}</span>
+                </div>
+                <table class="table table-inversei table-bordered">
+                  <thead> <tr><th>Type</th><th>Status</th><th>Quantity</th><th>Rate</th><th>Growth</th><th>Profit</th><th>Time</th></tr> </thead>
+                <tbody>
+                    <tr ng-repeat="trade in trades">
+                      <td>{{trade["order_type"]}}</td>
+                      <td>{{trade["status"]}}</td>
+                      <td>{{trade["qty"]}}</td>
+                      <td>{{trade["rate"]}}</td>
+                      <td animate-on-change="trade['growth']">{{trade["growth"]}}</td>
+                      <td animate-on-change="trade['profit']">{{trade["profit"]}}</td>
+                      <td>{{trade["time"]*1000 | date : "MM/dd/yy HH:mm:ss" }}</td>
+                    </tr>
+                </tbody></table>
+                <h5>Trade Signals</h5>
+                <table class="table table-inversei table-bordered">
+                  <thead> <tr><th>Signal</th><th>Rate</th><th>Count</th><th>Time</th></tr> </thead>
+                <tbody>
+                    <tr ng-repeat="signal in signal_history">
+                      <td>{{signal["signal"]}}</td>
+                      <td>{{signal["rate"]}}</td>
+                      <td>{{signal["count"]}}</td>
+                      <td>{{signal["time"]*1000 | date : "MM/dd/yy HH:mm:ss" }}</td>
+                    </tr>
+                </tbody></table>
+                <!--
+                <div class="row">
+                    <h5>Longs</h5>
+                    <table class="table table-inversei table-bordered">
+                    <thead>
+                        <th ng-repeat="key in tradeFields">
+                            {{key}}
+                        </th>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="trade in trades['long']">
+                        <td ng-repeat="key in tradeFields">{{trade[key]}} </td>
+                    </tr> 
+                    </tbody> </table>
+                </div>
+                <div class="row">
+                    <h5>Shorts</h5>
+                </div>
+                -->
+            </div>
+        </div>
+    </div><!-- /.container -->
+
+</body>
+{% endraw %}
+</html>

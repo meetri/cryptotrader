@@ -10,6 +10,7 @@ class SMA(BaseIndicator):
 
         config["label"] = config.get("label","sma")
         config["period"] = config.get("period",30)
+        config["label"] = "{}{}".format(config["label"],config["period"])
 
         BaseIndicator.__init__(self,csdata,config)
 
@@ -95,6 +96,13 @@ class SMA(BaseIndicator):
 
         self.analysis = res
         return res
+
+
+    def get_chart_metrics(self,index = 0, scale = 0):
+        if scale == 1 and not numpy.isnan(self.data[index]):
+            return {
+                "sma": self.data[index],
+            }
 
     def format_view(self):
         newres = dict(self.analysis["analysis"])

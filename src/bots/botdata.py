@@ -9,6 +9,96 @@ class BotDataProvider(object):
         self.log = logging.getLogger('crypto')
         self.chartsize = 0
 
+    def get_amchart_panels(self):
+
+        fieldkeys = {}
+        fieldmappings = []
+        fieldmappings.append({"fromField":"open","toField":"open"})
+        fieldmappings.append({"fromField":"high","toField":"high"})
+        fieldmappings.append({"fromField":"low","toField":"low"})
+        fieldmappings.append({"fromField":"close","toField":"close"})
+        fieldmappings.append({"fromField":"volume","toField":"volume"})
+
+        stockgraphkeys = {}
+        stockgraphs = []
+
+        stockgraphs.append({
+            "title": self.bot.getMarket(),
+            "type": "candlestick",
+            "id": "g1",
+            "openField": "open",
+            "closeField": "close",
+            "highField": "high",
+            "lowField": "low",
+            "valueField": "close",
+            "lineColor": "#7f8da9",
+            "fillColors": "#7f8da9",
+            "negativeLineColor": "#db4c3c",
+            "negativeFillColors": "#db4c3c",
+            "fillAlphas": 1,
+            #"comparedGraphLineThickness": 2,
+            #"columnWidth": 0.7,
+            "useDataSetColors": False,
+            "comparable": True,
+            "compareField": "close",
+            "showBalloon": False,
+            "proCandlesticks": True
+        })
+
+        for indicator in self.bot.analyzer.getIndicators():
+            metrics = indicator["object"].get_chart_metric_keys()
+            for metric in metrics:
+                if indicator["object"].get_chart_scale() == 1:
+                    label = indicator["object"].label
+                    if metric not in stockgraphkeys:
+                        stockgraphkeys[metric] = 1
+                        stockgraphs.append({
+                            "title": metric,
+                            "lineColor": indicator["object"].get_chart_metric_colors(metric),
+                            "lineThickness": 1,
+                            "valueField": metric,
+                            "useDataSetColors": False
+                        })
+
+        chart_corrected = 0
+        amchart = []
+        for i in range(0,len(self.bot.csdata["time"])):
+            ts = time.mktime(datetime.datetime.strptime(self.bot.csdata["time"][i], "%Y-%m-%dT%H:%M:%SZ").timetuple())*1000
+            if self.bot.csdata["open"][i] > 0:
+                datafields = {
+                    "date": ts,
+                    "open": self.bot.csdata["open"][i],
+                    "close": self.bot.csdata["closed"][i],
+                    "high": self.bot.csdata["high"][i],
+                    "low": self.bot.csdata["low"][i],
+                    "volume": self.bot.csdata["volume"][i] - self.bot.csdata["basevolume"][i]
+                }
+                for indicator in self.bot.analyzer.getIndicators():
+                    if "object" in indicator:
+                        v = indicator["object"].get_chart_metrics(i,1)
+                        if v:
+                            datafields = {**datafields, **v}
+                            for key in v:
+                                if key not in fieldkeys:
+                                    fieldkeys[key] = 1
+                                    fieldmappings.append({"fromField":key,"toField":key})
+
+                amchart.append(datafields)
+            else:
+                chart_corrected += 1
+
+        datasets = [{
+            "title": self.bot.getMarket(),
+            "fieldMappings": fieldmappings,
+            "categoryField": "date",
+            "color": "#7f8da9",
+            "dataProvider": amchart,
+        }]
+
+        return [{ "errors": chart_corrected,"datasets":datasets,"stockgraphs":stockgraphs}]
+
+
+
 
     def get_tacharts(self):
         allcharts = []
@@ -75,8 +165,7 @@ class BotDataProvider(object):
                         "close": self.bot.csdata["closed"][i],
                         "high": self.bot.csdata["high"][i],
                         "low": self.bot.csdata["low"][i],
-                        "volume": self.bot.csdata["volume"][i],
-                        "adjusted": 0,
+                        "volume": self.bot.csdata["volume"][i]
                         })
                 else:
                     chart_corrected += 1
@@ -107,6 +196,8 @@ class BotDataProvider(object):
             result = self.get_tacharts()
         elif query == "trades":
             result = self.get_trades()
+        elif query == "amcharts":
+            result =  self.get_amchart_panels()
         else:
             indicators = []
             for i in self.bot.analyzer.getIndicators():
@@ -141,6 +232,8 @@ class BotDataProvider(object):
             return self.get_tacharts()
         elif data == "trades":
             return self.get_trades()
+        elif data == "amcharts":
+            return self.get_amchart_panels()
         else:
 
             indicators = []

@@ -22,6 +22,7 @@ class MACD(object):
         self.analysis = None
 
         self.get_analysis()
+        self.chart_scale = 3
 
 
     def get_tertiary_charts(self):
@@ -209,6 +210,23 @@ class MACD(object):
 
         self.analysis = res
         return res
+
+    def get_chart_metric_colors(self,label):
+        return "#999"
+
+    def get_chart_metric_keys(self):
+        return ["macd","signal","history"]
+
+    def get_chart_scale(self):
+        return self.chart_scale
+
+    def get_chart_metrics(self,index = 0, scale = 0):
+        if scale == 3:
+            return {
+                "macd": self.data[0][index],
+                "signal": self.data[1][index],
+                "history": self.data[2][index]
+            }
 
     def format_view(self):
         newres = dict(self.analysis["analysis"])

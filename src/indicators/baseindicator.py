@@ -10,8 +10,12 @@ class BaseIndicator(object):
         self.config = config
         self.analysis = None
 
+        self.chartcolors = config.get("chartcolors",["#FFF"])
+        self.chart_metric_keys = config.get("chartkeys",[self.label])
+
         self.scalefactor = 1048576
         self.data = None
+        self.chart_scale = 1
 
 
     def get_data(self):
@@ -53,6 +57,35 @@ class BaseIndicator(object):
         return sdata
         #return numpy.array(sdata)
 
+    def get_chart_metric_colors(self,label):
+        try:
+            idx = self.chart_metric_keys.index(label)
+            return self.chartcolors[idx]
+        except:
+            print("cant find color for {}".format(label))
+            return "#999"
+
+    def get_chart_metric_keys(self):
+        return self.chart_metric_keys
+
+    def get_chart_metrics(self,index = 0, scale = 0):
+        #TODO: design better chart scale management...
+        if len(self.chart_metric_keys) > 1:
+            if scale == self.chart_scale and not numpy.isnan(self.data[0][index]):
+                m = {}
+                for key in self.chart_metric_keys:
+                    m[key] = self.data[self.chart_metric_keys.index(key)][index]
+                return m
+        else:
+            if scale == self.chart_scale and not numpy.isnan(self.data[index]):
+                m = {}
+                for key in self.chart_metric_keys:
+                    m[key] = self.data[index]
+                return m
+
+
+    def get_chart_scale(self):
+        return self.chart_scale
 
     def get_name(self):
         return self.label

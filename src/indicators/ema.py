@@ -8,10 +8,13 @@ class EMA(BaseIndicator):
 
     def __init__(self,csdata, config = {}):
 
-        config["label"] = config.get("label","ema")
         config["period"] = config.get("period",30)
+        config["label"] = config.get("label","ema")
+        config["label"] = "{}{}".format(config["label"],config["period"])
 
         BaseIndicator.__init__(self,csdata,config)
+
+        self.chartcolors = ["mediumslateblue"]
 
         self.data = None
         self.analysis = None
