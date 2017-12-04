@@ -15,7 +15,7 @@ class BaseIndicator(object):
 
         self.scalefactor = 1048576
         self.data = None
-        self.chart_scale = 1
+        self.chart_scale = 0
 
 
     def get_data(self):
@@ -71,13 +71,13 @@ class BaseIndicator(object):
     def get_chart_metrics(self,index = 0, scale = 0):
         #TODO: design better chart scale management...
         if len(self.chart_metric_keys) > 1:
-            if scale == self.chart_scale and not numpy.isnan(self.data[0][index]):
+            if not numpy.isnan(self.data[0][index]):
                 m = {}
                 for key in self.chart_metric_keys:
                     m[key] = self.data[self.chart_metric_keys.index(key)][index]
                 return m
         else:
-            if scale == self.chart_scale and not numpy.isnan(self.data[index]):
+            if not numpy.isnan(self.data[index]):
                 m = {}
                 for key in self.chart_metric_keys:
                     m[key] = self.data[index]

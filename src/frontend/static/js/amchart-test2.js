@@ -4,23 +4,22 @@ function createChartWith ( data ){
 
     if (false){
         //TODO: FIX THIS LATER
-        console.log("chart already exists")
-        console.log( data[0].datasets[0]["dataProvider"] )
+        //console.log("chart already exists")
         charts.dataSets[0]["dataProvider"] = data[0].datasets[0]["dataProvider"]
         charts.validateData()
-        console.log( charts.dataSets[0]["dataProvider"] )
 
     }else {
-        console.log("creating chart")
+
+        for (idx in data[0].datasets[0]["stockEvents"]){
+            data[0].datasets[0]["stockEvents"][idx]["date"] = new Date(data[0].datasets[0]["stockEvents"][idx]["date"])
+        }
+
+
         charts = AmCharts.makeChart( "chartdiv", {
           "type": "stock",
           "theme": "black",
-          "backgroundAlpha": 0,
-          "backgroundColor": "#111",
 
-          //"color": "#fff",
           "dataSets": data[0].datasets,
-          "dataDateFormat": "yyyy-mm-dd",
 
           "panels": [ {
               "title": "Value",
@@ -28,46 +27,25 @@ function createChartWith ( data ){
               "percentHeight": 60,
 			  "valueAxes": [{"id":"v1","dashLength":5}],
 			  "categoryAxis": {"dashLength":5},
-              "backgroundColor": "#111",
-              "backgroundAlpha": 0,
-
-              "stockGraphs": data[0].stockgraphs,
-
+              "stockGraphs": data[0].stockgraphs[0],
               "stockLegend": {
                 "valueTextRegular": undefined,
                 "periodValueTextComparing": "[[value.close]]"
               }
-
             },
             {
               "title": "More",
               "percentHeight": 20,
 			  "marginTop": 1,
 			  "showCategoryAxis": true,
-			  "valueAxes": [ {
-				"dashLength": 5
-			  } ],
-
-			  "categoryAxis": {
-				"dashLength": 5
-			  },
-
-			  "stockGraphs": [ {
-				"title": "RSI", 
-				"lineColor": "tomato", 
-				"lineThickness": 1, 
-                "type": "line",
-				"valueField": "rsi",
-				"showBalloon": false,
-				"fillAlphas": 0,
-				"useDataSetColors": false, 
-			  } ],
-
+			  "valueAxes": [ { "dashLength": 5 } ],
+			  "categoryAxis": { "dashLength": 5 },
+              "stockGraphs": data[0].stockgraphs[1],
 			  "stockLegend": {
 				"markerType": "none",
 				"markerSize": 0,
 				"labelText": "",
-				"periodValueTextRegular": "[[value.close]]"
+				"periodValueTextRegular": "[[value.rsi]]"
 			  }
             },
 
@@ -104,7 +82,7 @@ function createChartWith ( data ){
           "chartScrollbarSettings": {
             "graph": "g1",
             "usePeriod": "10mm",
-            "position": "top"
+            "position": "bottom"
           },
 
           "chartCursorSettings": {
@@ -114,7 +92,7 @@ function createChartWith ( data ){
           },
 
           "periodSelector": {
-            "position": "top",
+            "position": "bottom",
             "dateFormat": "YYYY-MM-DD JJ:NN",
             "inputFieldWidth": 150,
                 "periods": [ {

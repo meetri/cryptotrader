@@ -64,10 +64,6 @@ class BaseBot(object):
 
         self.run_interval = config.get("run_interval",300)
 
-
-
-
-
         if self.backtest:
             random.seed()
             rid = random.randint(100,70000)

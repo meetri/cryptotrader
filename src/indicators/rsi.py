@@ -21,8 +21,11 @@ class RSI(object):
 
         self.data = self.calc_value()
         self.get_analysis()
-        self.chart_scale = 2
+        self.chart_scale = 1
 
+    def last(self,index=1):
+        index = index * -1
+        return self.data[index]
 
     def isOverbought(self,index = 1):
         index = index * -1

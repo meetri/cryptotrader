@@ -96,7 +96,8 @@ class Order(object):
                 "growth": growth,
                 "profit": profit,
                 "status": os[self.status],
-                "time": self.created_ts
+                "time": self.created_ts,
+                "candle_time": self.meta["candle_trade_time"]
                 }
 
         if self.order_type == Order.BUY and self.status == Order.COMPLETED:
@@ -140,6 +141,8 @@ class Order(object):
             self.created_ts = data.get("created_ts").timestamp()
 
         self.meta = data.get("meta",self.meta)
+        if "candle_time" in data and data["candle_time"] is not None:
+            self.meta["candle_trade_time"]  = data["candle_time"]
 
 
     def _insert(self):

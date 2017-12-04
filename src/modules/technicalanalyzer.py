@@ -55,17 +55,17 @@ class TechnicalAnalyzer(object):
 
 
 
-    def getrsi(self,period = 14,label="rsi"):
+    def getrsi(self,period = 14,overbought=60,oversold=40,label="rsi"):
         tag = "rsi:{}".format(period)
         ind = self.analyzer.getIndicator(tag)
         if not ind:
-            ind = RSI(self.csdata,{"period":period,"label":label})
+            ind = RSI(self.csdata,{"period":period,"overbought":overbought,"oversold":oversold,"label":label})
             self.analyzer.saveIndicator(tag,ind)
         return ind
 
 
     def rsi(self, period = 14,label="rsi" ):
-        return self.getrsi(14).data[-1]
+        return self.getrsi(period).last()
 
 
     def dband(self,period,stdev1,stdev2,label="bband"):

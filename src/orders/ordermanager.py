@@ -52,7 +52,23 @@ class OrderManager(object):
 
     def validate(self, order ):
         self.log.info("validating...")
-        return True
+
+        # limit number of buy/sell trades per candle based on config
+        cnt = 0
+        for trade in self.getBotOrders():
+            if trade.order_type == order.order_type and order.meta["candle_trade_time"] == trade.meta["candle_trade_time"]:
+                cnt+=1
+
+        if order.order_type == Order.BUY:
+            m = self.bot.config.get("maxbuypercandle",0)
+        else:
+            m = self.bot.config.get("maxsellpercandle",0)
+
+        if m > 0 and cnt >= m:
+            self.log.info("validation failed, trade limit per candlestick {} >= {}".format(cnt,m))
+            return False
+        else:
+            return True
 
 
     def tradeTick(self,tradetype):
@@ -97,6 +113,7 @@ class OrderManager(object):
             neworder = {
                     "market": self.bot.market,
                     "created_by" : self.bot.getName(),
+                    "candle_time": self.bot.analyzer.last("time"),
                     "assoc_id" : orderforsale.pkey,
                     "order_type" : Order.SELL,
                     "qty": orderforsale.qty,
@@ -135,6 +152,7 @@ class OrderManager(object):
             self.log.info("order generated")
             neworder = {
                     "created_by" : self.bot.getName(),
+                    "candle_time": self.bot.analyzer.last("time"),
                     "order_type" : Order.BUY,
                     "market": self.bot.market,
                     "qty": qty,
@@ -201,7 +219,7 @@ class OrderManager(object):
                     sellorders = self.genSellOrders(order)
                     for sellorder in sellorders:
                         if sellorder:
-                            self.send( Order(sellorder) )
+                            self.send( Order(sellorder),force=True )
                             stopped += 1
 
 
@@ -222,9 +240,11 @@ class OrderManager(object):
 
 
 
-    def send(self, order ):
+    def send(self, order, force = False ):
         self.log.info("inside send")
-        if self.validate(order):
+        if force or self.validate(order):
+            if force:
+                order.meta["forced"] = True
             res = self.exchange.processOrder( order )
             self.getBotOrders(refresh=True)
             return res

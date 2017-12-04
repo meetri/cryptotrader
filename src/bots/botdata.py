@@ -20,9 +20,9 @@ class BotDataProvider(object):
         fieldmappings.append({"fromField":"volume","toField":"volume"})
 
         stockgraphkeys = {}
-        stockgraphs = []
+        stockgraphs = [[],[],[]]
 
-        stockgraphs.append({
+        stockgraphs[0].append({
             "title": self.bot.getMarket(),
             "type": "candlestick",
             "id": "g1",
@@ -48,17 +48,17 @@ class BotDataProvider(object):
         for indicator in self.bot.analyzer.getIndicators():
             metrics = indicator["object"].get_chart_metric_keys()
             for metric in metrics:
-                if indicator["object"].get_chart_scale() == 1:
-                    label = indicator["object"].label
-                    if metric not in stockgraphkeys:
-                        stockgraphkeys[metric] = 1
-                        stockgraphs.append({
-                            "title": metric,
-                            "lineColor": indicator["object"].get_chart_metric_colors(metric),
-                            "lineThickness": 1,
-                            "valueField": metric,
-                            "useDataSetColors": False
-                        })
+                scale = indicator["object"].get_chart_scale()
+                label = indicator["object"].label
+                if metric not in stockgraphkeys:
+                    stockgraphkeys[metric] = 1
+                    stockgraphs[scale].append({
+                        "title": metric,
+                        "lineColor": indicator["object"].get_chart_metric_colors(metric),
+                        "lineThickness": 1,
+                        "valueField": metric,
+                        "useDataSetColors": False
+                    })
 
         chart_corrected = 0
         amchart = []
@@ -71,7 +71,7 @@ class BotDataProvider(object):
                     "close": self.bot.csdata["closed"][i],
                     "high": self.bot.csdata["high"][i],
                     "low": self.bot.csdata["low"][i],
-                    "volume": self.bot.csdata["volume"][i] - self.bot.csdata["basevolume"][i]
+                    "volume": self.bot.csdata["basevolume"][i]# - self.bot.csdata["basevolume"][i]
                 }
                 for indicator in self.bot.analyzer.getIndicators():
                     if "object" in indicator:
@@ -87,12 +87,42 @@ class BotDataProvider(object):
             else:
                 chart_corrected += 1
 
+
+        om = self.bot.getOrderManager()
+        events = []
+        for trade in om.getBotOrders():
+            v = trade.getView(self.bot.csdata["closed"][-1])
+            if v["candle_time"] is not None:
+                ts = time.mktime(datetime.datetime.strptime(v["candle_time"], "%Y-%m-%dT%H:%M:%SZ").timetuple())
+                if trade.order_type == Order.SELL:
+                    actionText = "S"
+                    actionType = "arrowDown"
+                    action = "Sell"
+                else:
+                    actionText = "B"
+                    actionType = "arrowUp"
+                    action = "Buy"
+
+                events.append({
+                    "date": ts*1000,
+                    "showBullet": True,
+                    "showOnAxis": False,
+                    "value": v["rate"],
+                    "type": actionType,
+                    "backgroundColor": "#85CDE6",
+                    "graph": "g1",
+                    "text": actionText,
+                    "description": "{} Qty: {} @ {}".format(action,v["qty"],v["rate"])
+                    })
+
+
         datasets = [{
             "title": self.bot.getMarket(),
             "fieldMappings": fieldmappings,
             "categoryField": "date",
             "color": "#7f8da9",
             "dataProvider": amchart,
+            "stockEvents": events
         }]
 
         return [{ "errors": chart_corrected,"datasets":datasets,"stockgraphs":stockgraphs}]

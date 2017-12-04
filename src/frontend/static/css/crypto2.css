@@ -6,8 +6,12 @@
 
 #chartdiv {
   width : 100%;
-  height  : 800px;
-  #background: #111;
+  height  : 900px;
+}
+
+#chartdiv2 {
+  width : 100%;
+  height  : 400px;
 }
 
 /*

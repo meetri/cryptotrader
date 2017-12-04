@@ -28,11 +28,14 @@ class MiddleBandSurfer3(BaseBot):
         ta = self.analyzer.ta
         messages = []
 
+        rsi = ta.getrsi(14)
         dband = ta.dband(14,2,1.4)
         messages = dband.debug(messages)
 
         uptrend = ta.ema(50) > ta.ema(100)
         ap = (ta.atr(14) / ta.sma(20))
+
+        macd = ta.getmacd(14)
 
         if uptrend:
             messages.append("uptrending...")
@@ -46,12 +49,14 @@ class MiddleBandSurfer3(BaseBot):
 
             if dband.enteringOuterUpperBand():
                 self.pushSignal("upband","sell",100)
-            elif dband.enteringUpperBand():
+            elif dband.exitingOuterUpperBand():
                 self.pushSignal("upband","sell",75)
+            elif dband.enteringUpperBand():
+                self.pushSignal("upband","sell",50)
 
         else:
             messages.append("downtrending or consolidating...")
-            if ta.rsi(14) <= 40 and macd.getTrend() == "bull":
+            if rsi.last() <= 40 and macd.getTrend() == "bull":
                 if dband.enteringLowerOuterBand():
                     self.pushSignal("lowband-chomp","buy",100)
                 elif dband.exitingLowerOuterBand():
@@ -101,7 +106,6 @@ class MiddleBandSurfer3(BaseBot):
         if messages:
             self.debug = []
             for msg in messages:
-                self.log.info(msg)
                 self.debug.append(msg)
         else:
             self.debug = ["Nothing interesting to report"]

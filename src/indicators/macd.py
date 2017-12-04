@@ -22,7 +22,7 @@ class MACD(object):
         self.analysis = None
 
         self.get_analysis()
-        self.chart_scale = 3
+        self.chart_scale = 2
 
 
     def get_tertiary_charts(self):

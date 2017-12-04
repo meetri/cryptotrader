@@ -23,7 +23,9 @@ crypto-bots:
         candlestick: 5m
         budget: 0.1
         tradelimit: 5
-        stoploss: -3
+        maxbuypercandle: 2
+        maxsellpercandle: 1
+        stoploss: -5
         growthtarget: 1
         run_interval: 60
         backtest_start_offset: 259200 # 3 days
