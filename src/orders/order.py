@@ -50,6 +50,9 @@ class Order(object):
 
         self.meta = {}
 
+        #temp data
+        self.upforsale = None
+
         if orderInfo is not None:
             self.dbdata = orderInfo
             self.deserialize(orderInfo)
@@ -139,6 +142,9 @@ class Order(object):
         self.status = int(data.get("status",self.status))
         if data.get("created_ts"):
             self.created_ts = data.get("created_ts").timestamp()
+
+        if data.get("upforsale"):
+            self.upforsale = data["upforsale"]
 
         self.meta = data.get("meta",self.meta)
         if "candle_time" in data and data["candle_time"] is not None:

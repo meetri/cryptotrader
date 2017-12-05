@@ -6,33 +6,26 @@ from baseindicator import BaseIndicator
 class ATR(BaseIndicator):
 
     def __init__(self,csdata, config ):#period,label = "atr"):
+
+        config["label"] = "{}{}".format(config.get("label","atr"),config["period"])
+        config["period"] = config.get("period",30)
+        config["chartaxis"] = ["v2"]
+        config["chartcolors"] = config.get("chartcolors",["silver"])
+
         BaseIndicator.__init__(self,csdata,config)
+        self.chart_scale = 1
         self.data = None
         self.analysis = None
         self.get_analysis()
 
 
+    def last(self,index=1):
+        index = index * -1
+        return self.data[index]
+
 
     def get_settings(self):
         return self.config["period"]
-
-    def get_secondary_charts(self):
-        data = []
-        for i in range(0,len(self.csdata["closed"])):
-            if isinstance(self.data[i],numbers.Number) and self.data[i] > 0:
-                ts = time.mktime(datetime.datetime.strptime(self.csdata["time"][i], "%Y-%m-%dT%H:%M:%SZ").timetuple())
-                data.append({
-                    "x": ts,
-                    "y": self.data[i],
-                    })
-
-        return [{
-                "key": "{}:{}".format(self.label,self.config["period"]),
-                "type": "line",
-                "color": "#FFFFFF",
-                "yAxis": 1,
-                "values": data
-                }]
 
 
     def get_atr(self):
@@ -46,21 +39,11 @@ class ATR(BaseIndicator):
 
         return self.data
 
+
     def format_view(self):
         newres = dict(self.analysis["analysis"])
         return newres
 
-    def get_chart_metric_colors(self,label):
-        return "#999"
-
-    def get_chart_metric_keys(self):
-        return ["atr"]
-
-    def get_chart_metrics(self,index = 0, scale = 0):
-        if scale == 4 and numpy.isnan(self.data[index]):
-            return {
-                "atr": self.data[index],
-            }
 
     def get_analysis(self):
         if self.data is None:
@@ -71,13 +54,8 @@ class ATR(BaseIndicator):
         signal = None
 
         self.analysis = {
-                "weight": 2,
-                "time": closing_time,
-                "indicator-data": {
-                    "atr": atr
-                    },
                 "analysis": {
-                    "name": "{}".format(self.get_name()),
+                    "name": self.get_name(),
                     "signal": signal,
                     "atr": atr,
                     "order": ["atr"]
@@ -85,7 +63,4 @@ class ATR(BaseIndicator):
                 }
 
         return self.analysis
-
-
-
 

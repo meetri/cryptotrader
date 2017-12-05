@@ -24,12 +24,13 @@
     <script src="static/js/app2.js"></script>
     <script src="static/js/amchart-test2.js"></script>
 
+    <link rel=stylesheet href="https://s3-us-west-2.amazonaws.com/colors-css/2.2.0/colors.min.css">
     <link rel="stylesheet" href="https://bootswatch.com/4/slate/bootstrap.min.css">
     <link rel="stylesheet" href="static/css/crypto2.css">
 
   </head>
 {% raw %}
-<body ng-app="cryptoai" ng-controller="botController" style='background-color:#101010'>
+<body ng-app="cryptoai" ng-controller="botDataController" style='background-color:#101010'>
 
 	<div class='container-fluid'>
         <div class="row topnav">
@@ -58,9 +59,8 @@
                     <td><span style='margin-right:4px'x ng-repeat="key in indicator.order"><span class='navitem'>{{key}}:</span> <span class=''>{{indicator[key]}}</span></td>
                 </tr> </tbody> </table>
                 <h5>Technical Analysis Charts</h5>
-                <div ng-controller="tacharts">
+                <div>
                     <div id="chartdiv"></div>
-                    <div id="chartdiv2"></div>
                 </div>
             </div>
             <div class="col-sm-4">
@@ -110,10 +110,9 @@
                 <h5>Completed Trades</h5>
                 <div style='overflow-y:auto; max-height:500px'>
                     <table class="table table-inversei table-bordered">
-                      <thead> <tr><th>Type</th><th>Quantity</th><th>Bought@</th><th>Sold@</th><th>Growth</th><th>Profit</th><th>Time</th></tr> </thead>
+                      <thead> <tr><th>Quantity</th><th>Bought@</th><th>Sold@</th><th>Growth</th><th>Profit</th><th>Time</th></tr> </thead>
                     <tbody>
                         <tr ng-repeat="trade in trades" ng-if="trade.status == 'completed' && trade.order_type == 'buy' ">
-                          <td>{{trade["order_type"]}}</td>
                           <td>{{trade["qty"]}}</td>
                           <td>{{trade["rate"]}}</td>
                           <td>{{trade["sold_at"]}}</td>

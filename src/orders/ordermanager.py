@@ -27,6 +27,7 @@ class OrderManager(object):
 
 
     def startOrderMonitor(self,delay):
+        self.log.info("setting order monitor refresh to {} seconds".format(delay))
         self.orderMonitorThread= Thread(target = self.orderMonitorLoop, args = ( delay,))
         self.orderMonitorThread.start()
 
@@ -52,6 +53,7 @@ class OrderManager(object):
 
     def validate(self, order ):
         self.log.info("validating...")
+        validationCheck = False
 
         # limit number of buy/sell trades per candle based on config
         cnt = 0
@@ -66,9 +68,12 @@ class OrderManager(object):
 
         if m > 0 and cnt >= m:
             self.log.info("validation failed, trade limit per candlestick {} >= {}".format(cnt,m))
-            return False
+            validationCheck = False
         else:
-            return True
+            validationCheck = True
+
+
+        return validationCheck
 
 
     def tradeTick(self,tradetype):
@@ -107,8 +112,8 @@ class OrderManager(object):
         self.log.info("found {} orders up for sale".format(len(upforsale)))
         orders = []
         for orderforsale in upforsale:
-            orderforsale.status = Order.UPFORSALE
-            ref = orderforsale.save()
+            #orderforsale.status = Order.UPFORSALE
+            #ref = orderforsale.save()
             #print("saving orderforsale: {} {}".format(orderforsale.ref_id,ref))
             neworder = {
                     "market": self.bot.market,
@@ -117,7 +122,8 @@ class OrderManager(object):
                     "assoc_id" : orderforsale.pkey,
                     "order_type" : Order.SELL,
                     "qty": orderforsale.qty,
-                    "rate": self.bot.marketRate()
+                    "rate": self.bot.marketRate(),
+                    "upforsale": orderforsale
                     }
 
             self.trade_history["sell"].append({"time":time.time(),"order": neworder})
@@ -235,9 +241,7 @@ class OrderManager(object):
             if self.exchange.syncOrder(order):
                 total += 1
 
-
         return total
-
 
 
     def send(self, order, force = False ):
@@ -245,6 +249,12 @@ class OrderManager(object):
         if force or self.validate(order):
             if force:
                 order.meta["forced"] = True
+
+            if order.upforsale:
+                self.log.info("setting order {} upforsale".format(order.upforsale.ref_id))
+                order.upforsale.status = Order.UPFORSALE
+                order.upforsale.save()
+
             res = self.exchange.processOrder( order )
             self.getBotOrders(refresh=True)
             return res

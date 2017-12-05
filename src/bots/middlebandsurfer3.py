@@ -37,14 +37,24 @@ class MiddleBandSurfer3(BaseBot):
 
         macd = ta.getmacd(14)
 
+        #if rsi.last() <= 40:
+        if ( dband.isInLowerBand() or dband.isBelowLowerBand()):
+            self.pushSignal("lowband","buy",75)
+
+        #self.pushSignal("neverabadtime","sell",100)
+
+        if dband.enteringUpperBand():
+            self.pushSignal("upband","sell",100)
+
+        """
         if uptrend:
             messages.append("uptrending...")
             if dband.enteringLowerOuterBand():
-                self.pushSignal("lowband-chomp","buy",100)
-            elif dband.exitingLowerOuterBand():
-                self.pushSignal("lowband-bite","buy",75)
-            elif dband.settingBelowCenter():
-                self.pushSignal("lowband-nibble","buy",50)
+                self.pushSignal("lowband-bigbite","buy",100)
+        #    elif dband.exitingLowerOuterBand():
+        #        self.pushSignal("lowband-bite","buy",75)
+        #    elif dband.settingBelowCenter():
+        #        self.pushSignal("lowband-nibble","buy",50)
 
 
             if dband.enteringOuterUpperBand():
@@ -52,6 +62,8 @@ class MiddleBandSurfer3(BaseBot):
             elif dband.exitingOuterUpperBand():
                 self.pushSignal("upband","sell",75)
             elif dband.enteringUpperBand():
+                self.pushSignal("upband","sell",50)
+            elif dband.risingAboveCenter():
                 self.pushSignal("upband","sell",50)
 
         else:
@@ -71,7 +83,6 @@ class MiddleBandSurfer3(BaseBot):
                 self.pushSignal("centerband","sell",50)
 
 
-        """
         macd = ta.getmacd(14)
 
         if macd.getSignal():

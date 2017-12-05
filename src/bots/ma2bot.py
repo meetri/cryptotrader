@@ -20,7 +20,10 @@ class MA2Bot(BaseBot):
         self.refreshData()
         ta = self.analyzer.ta
 
-        uptrend = False
+        med_uptrend = uptrend = False
+        if ta.ema(50) > ta.ema(100):
+            med_uptrend = True
+
         if ta.ema(20) > ta.ema(40):
             uptrend = True
 
@@ -32,9 +35,11 @@ class MA2Bot(BaseBot):
                 "last": "{:.08f}".format(self.analyzer.last("closed")),
                 "slope": ta.getbband(20).getSlope(30),
                 "uptrend": uptrend,
+                "meduptrend": med_uptrend,
                 "atr": "{:.08f}".format(ta.atr(20)),
                 "sma": "{:.08f}".format(ta.sma(50)),
                 "atrPercent": "{:.04f}".format(ap),
-                "bbwidth": "{:.08f}".format(bbwidth)
+                "bbwidth": "{:.08f}".format(bbwidth),
+                "volume": "{:.08f}".format(self.analyzer.last("volume"))
                 }
 

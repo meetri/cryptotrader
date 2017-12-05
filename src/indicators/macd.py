@@ -1,81 +1,44 @@
 import os,sys,talib,numpy,math,logging,time,datetime,math
 from collections import OrderedDict
+from baseindicator import BaseIndicator
 
-class MACD(object):
+class MACD(BaseIndicator):
 
+    def __init__(self,csdata, config ):
 
-    def __init__(self,csdata, config ): #fastperiod=12, slowperiod=26, signalperiod=9 , bull_lag = 1):
+        config["chartkeys"] = ["macd","signal","history"]
+        config["chartcolors"] = ["blue","magenta","#555"]
+        config["charttypes"] = ["line","line","column"]
+        config["chartaxis"] = ["v1","v1","v2"]
+
+        BaseIndicator.__init__(self,csdata,config)
 
         #macd settings
         self.fastperiod = config.get("fastperiod",12)
         self.slowperiod = config.get("slowperiod",26)
         self.signalperiod = config.get("signalperiod",9)
-        self.label = config.get("label","macd")
 
         #number of segments after bull trend does a buy action occur
         self.bull_lag = config.get("bull_lag",1)
 
-        #candlestick data
-        self.csdata = csdata
-
-        self.data = None
-        self.analysis = None
-
-        self.get_analysis()
         self.chart_scale = 2
+        self.get_analysis()
 
-
-    def get_tertiary_charts(self):
-
-        macddata = []
-        signaldata = []
-        historydata = []
-
-        for i in range(0,len(self.csdata["closed"])):
-            if not math.isnan(self.data[0][i]) and not math.isnan(self.data[1][i]) and not math.isnan(self.data[2][i]):
-                ts = time.mktime(datetime.datetime.strptime(self.csdata["time"][i], "%Y-%m-%dT%H:%M:%SZ").timetuple())
-
-                macddata.append({ "x": ts, "y": self.data[0][i], })
-                signaldata.append({ "x": ts, "y": self.data[1][i], })
-                historydata.append({ "x": ts, "y": self.data[2][i], })
-
-
-        return [{
-                "key": "macd",
-                "type": "line",
-                "color": "#990000",
-                "yAxis": 1,
-                "values": macddata
-                },{
-                "key": "signal",
-                "type": "line",
-                "color": "#009900",
-                "yAxis": 1,
-                "values": signaldata
-                },{
-                "key": "history",
-                "type": "bar",
-                "color": "#555555",
-                "yAxis": 2,
-                "values": historydata
-                }]
-
-    def get_secondary_charts(self):
-        return []
-
-    def get_secondary_charts(self):
-        return []
-
+    def mergeGraphConfig(self,metric,stockgraph):
+        """used for amcharts"""
+        stockgraph = BaseIndicator.mergeGraphConfig(self,metric,stockgraph)
+        if metric == "history":
+            stockgraph["negativeFillColors"] = "#db4c3c"
+            stockgraph["useNegativeColorIfDown"] = True
+            stockgraph["valueField"] = metric
+            stockgraph["visibleInLegend"] = False
+            stockgraph["fillColors"] = "limegreen"
+            stockgraph["fillAlphas"] = 0.6
+        return stockgraph
 
     def get_settings(self):
         return "{}:{}:{}".format(self.fastperiod,self.slowperiod,self.signalperiod)
 
-
-    def get_name(self):
-        return self.label
-
-    def get_charts(self):
-        return []
 
     def get_macd(self):
         if self.csdata is not None:
@@ -86,32 +49,6 @@ class MACD(object):
 
         return self.data
 
-
-    def get_trend(self, history ):
-        if history > 0:
-            return "bull"
-        elif history < 0:
-            return "bear"
-        else:
-            return "even"
-
-    def get_trend_length( self, offset = 0 ):
-        macd_history = self.data[2]
-
-        end = len(macd_history) - ( 1 + offset )
-        segments = 1
-
-        trend = self.get_trend(macd_history[end])
-        for i in range( end-1, 0, -1):
-            if trend == self.get_trend( macd_history[i] ):
-                segments += 1
-            else:
-                break
-        return {
-                "trend": trend,
-                "length": segments
-                }
-
     def getLast(self,index = 1):
         index = -1 * index
         return {
@@ -120,12 +57,28 @@ class MACD(object):
                 "history": self.data[2][index],
                 }
 
+    def macd(self,index = 1):
+        index = -1 * index
+        return self.data[0][index]
+
+
+    def signal(self,index = 1):
+        index = -1 * index
+        return self.data[1][index]
+
+
+    def history(self,index = 1):
+        index = -1 * index
+        return self.data[2][index]
+
+
     def getTrend(self,ofs = 1):
         cur = self.getLast(ofs)
         if cur["history"] > 0:
             return "bull"
         else:
             return "bear"
+
 
     def getTrendLength(self):
         trend = self.getTrend()
@@ -138,102 +91,38 @@ class MACD(object):
 
         return trendLength
 
-    def getSignal(self):
-        prev = self.getLast(2)
-        cur = self.getLast()
-
-        signal = None
-        if cur["history"] > 0 and prev["history"] < 0:
-            signal = "buy"
-        elif cur["history"] < 0 and prev["history"] > 0:
-            signal = "sell"
-
-        return signal
-
-
 
     def get_analysis(self ):
         if self.data is None:
             self.get_macd()
 
-        macd_all = self.data
-        macd = {
-                "macd":macd_all[0][-1],
-                "signal":macd_all[1][-1],
-                "history":macd_all[2][-1],
-                }
-
-        tdata = self.get_trend_length()
-
-        action = None
-        if tdata["trend"] == "bull" and tdata["length"] == self.bull_lag:
-            action = "buy"
-
-
-        last_price = self.csdata["closed"][-1]
-        last_frame_price = self.csdata["closed"][-2]
-
-        closing_time = self.csdata["time"][-1]
-
-        strength = math.fabs(macd_all[2][-2] - macd_all[2][-1])
-
-        ath = 0;
-        atl = 99999999;
-        for v in macd_all[2]:
-            if v > ath:
-                ath = v
-            if v < atl:
-                atl = v
-
         res = {
                 "weight": 1,
-                "time": closing_time,
                 "indicator-data": {
-                    "macd":macd_all[0][-1],
-                    "signal":macd_all[1][-1],
-                    "history":macd_all[2][-1],
-                    "ath": ath,
-                    "atl": atl,
-                    "strength": strength
+                    "macd":self.macd(),
+                    "signal": self.signal(),
+                    "history": self.history()
                     },
                 "analysis": OrderedDict()
                 }
 
         res["analysis"]["name"] = "{}:{}".format(self.get_name(),self.get_settings())
-        res["analysis"]["signal"] = self.getSignal()
-        res["analysis"]["trend"] = tdata["trend"]
-        res["analysis"]["trendlength"] = tdata["length"]
-        res["analysis"]["macd"] = macd_all[0][-1]
-        res["analysis"]["sig"] = macd_all[1][-1]
-        res["analysis"]["history"] = macd_all[2][-1]
+        res["analysis"]["signal"] = None
+        res["analysis"]["trend"] = self.getTrend()
+        res["analysis"]["length"] = self.getTrendLength()
+        res["analysis"]["macd"] = self.macd()
+        res["analysis"]["sig"] =  self.signal()
+        res["analysis"]["history"] = self.history()
         res["analysis"]["order"] = ["macd","sig","history","length"]
 
         self.analysis = res
         return res
-
-    def get_chart_metric_colors(self,label):
-        return "#999"
-
-    def get_chart_metric_keys(self):
-        return ["macd","signal","history"]
-
-    def get_chart_scale(self):
-        return self.chart_scale
-
-    def get_chart_metrics(self,index = 0, scale = 0):
-        if scale == 3:
-            return {
-                "macd": self.data[0][index],
-                "signal": self.data[1][index],
-                "history": self.data[2][index]
-            }
 
     def format_view(self):
         newres = dict(self.analysis["analysis"])
         newres["macd"] = "{:.12f}".format(newres["macd"])
         newres["sig"] = "{:.12f}".format(newres["sig"])
         newres["history"] = "{:.12f}".format(newres["history"])
-        newres["length"] = self.getTrendLength()
 
         return newres
 

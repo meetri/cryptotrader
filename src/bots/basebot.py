@@ -55,9 +55,13 @@ class BaseBot(object):
 
         #enable backtesting...
         self.backtest = config.get("backtest",False)
-        ofs  = config.get("backtest_start_ofs",259200)
-        ts = time.time() - ofs
-        ts = ts - ( ts % 3600 ) - config.get("run_offset",0)
+        if "backtest_start_time" in config:
+            ts = config["backtest_start_time"]
+        else:
+            ofs  = config.get("backtest_start_ofs",259200)
+            ts = time.time() - ofs
+            ts = ts - ( ts % 3600 ) - config.get("run_offset",0)
+
         self.backtest_tick = ts
         self.backtest_startprice = None
         self.backtest_endprice = 0
@@ -87,7 +91,7 @@ class BaseBot(object):
         self.ordermanager = om
         self.ordermanager.setBot(self)
         self.log.info("initializing order manager")
-        self.ordermanager.startOrderMonitor(5)
+        self.ordermanager.startOrderMonitor(self.config.get("orderrefresh",60))
 
 
     def getSignal(self):

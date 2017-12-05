@@ -16,6 +16,23 @@ def mybot():
     return render_template("newdark.html")
 
 
+@app.route("/_botdata")
+def botdata():
+    port = int(request.args["bot"])
+    sock = TcpSock("127.0.0.1", port )
+
+    info = json.loads(sock.get("info"))
+    charts = json.loads(sock.get("amcharts"))
+    trades = json.loads(sock.get("trades"))
+
+    return jsonify({
+        "info": info,
+        "charts": charts,
+        "trades": trades
+        })
+
+
+
 @app.route("/_botinfo")
 def botinfo():
     port = int(request.args["bot"])

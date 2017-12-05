@@ -5,8 +5,9 @@ from baseindicator import BaseIndicator
 
 class BBands(BaseIndicator):
 
-
     def __init__(self,csdata, config={}):
+
+        config["charttypes"] = ["line","line","line"]
 
         BaseIndicator.__init__(self,csdata,config)
 

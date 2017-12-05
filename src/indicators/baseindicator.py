@@ -12,6 +12,8 @@ class BaseIndicator(object):
 
         self.chartcolors = config.get("chartcolors",["#FFF"])
         self.chart_metric_keys = config.get("chartkeys",[self.label])
+        self.chart_type = config.get("charttypes",["line"])
+        self.chart_axis = config.get("chartaxis",["v1"])
 
         self.scalefactor = 1048576
         self.data = None
@@ -21,14 +23,6 @@ class BaseIndicator(object):
     def get_data(self):
         return self.data
 
-    def get_secondary_charts(self):
-        return []
-
-    def get_tertiary_charts(self):
-        return []
-
-    def get_charts(self):
-        return []
 
     def scaledown(self,data):
 
@@ -57,19 +51,45 @@ class BaseIndicator(object):
         return sdata
         #return numpy.array(sdata)
 
+
+    def mergeGraphConfig(self,metric,stockgraph):
+        """used for amcharts"""
+        stockgraph["type"] = self.get_chart_type(metric)
+        stockgraph["lineColor"] = self.get_chart_metric_colors(metric)
+        stockgraph["valueAxis"] = self.get_chart_axis(metric)
+        return stockgraph
+
+
+    def get_chart_axis(self,metric):
+        try:
+            idx = self.chart_metric_keys.index(metric)
+            return self.chart_axis[idx]
+        except:
+            self.log.error("cant find chart axis for {}".format(metric))
+            return "v1"
+
+
+    def get_chart_type(self,metric):
+        try:
+            idx = self.chart_metric_keys.index(metric)
+            return self.chart_type[idx]
+        except:
+            self.log.error("cant find chart type for {}".format(metric))
+            return "line"
+
+
     def get_chart_metric_colors(self,label):
         try:
             idx = self.chart_metric_keys.index(label)
             return self.chartcolors[idx]
         except:
-            print("cant find color for {}".format(label))
+            self.log.error("cant find color for {}".format(label))
             return "#999"
 
     def get_chart_metric_keys(self):
         return self.chart_metric_keys
 
     def get_chart_metrics(self,index = 0, scale = 0):
-        #TODO: design better chart scale management...
         if len(self.chart_metric_keys) > 1:
             if not numpy.isnan(self.data[0][index]):
                 m = {}

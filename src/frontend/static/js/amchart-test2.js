@@ -2,11 +2,18 @@ var charts = undefined
 
 function createChartWith ( data ){
 
-    if (false){
+    if (false){// charts != undefined){
         //TODO: FIX THIS LATER
-        //console.log("chart already exists")
-        charts.dataSets[0]["dataProvider"] = data[0].datasets[0]["dataProvider"]
-        charts.validateData()
+        console.log("chart already exists")
+		var newChartData = []
+		var newdata = data[0].datasets[0]["dataProvider"]
+		for (idx in newdata){
+			newChartData.push(newdata[idx])
+		}
+		console.log(charts.dataSets[0]["dataProvider"])
+		charts.dataSets[0]["dataProvider"] = newChartData
+		charts.validateData()
+		charts.validateNow()
 
     }else {
 
@@ -20,11 +27,12 @@ function createChartWith ( data ){
           "theme": "black",
 
           "dataSets": data[0].datasets,
-
           "panels": [ {
               "title": "Value",
 			  "showCategoryAxis": false,
-              "percentHeight": 60,
+              "creditsPosition" : "bottom-right",
+              "drawingIconsEnabled": false,
+              "percentHeight": 55,
 			  "valueAxes": [{"id":"v1","dashLength":5}],
 			  "categoryAxis": {"dashLength":5},
               "stockGraphs": data[0].stockgraphs[0],
@@ -35,11 +43,32 @@ function createChartWith ( data ){
             },
             {
               "title": "More",
-              "percentHeight": 20,
+              "percentHeight": 15,
+              "creditsPosition" : "bottom-right",
 			  "marginTop": 1,
 			  "showCategoryAxis": true,
-			  "valueAxes": [ { "dashLength": 5 } ],
-			  "categoryAxis": { "dashLength": 5 },
+              "valueAxes": [{
+                  "id":"v1",
+                  "maximum": 100,
+                  "minimum": 0,
+                  "position": "left",
+                  "guides": [ {
+                     "value": 80,
+                     "lineAlpha": 0.8,
+                     "lineColor": "#c00",
+                     "label": "oversold",
+                     "position": "right"
+                   },{
+                     "value": 20,
+                     "lineAlpha": 0.8,
+                     "lineColor": "limegreen",
+                     "label": "overbought",
+                     "position": "right"
+                   }],
+              },{
+                  "id":"v2",
+                  "position": "right"
+              }],
               "stockGraphs": data[0].stockgraphs[1],
 			  "stockLegend": {
 				"markerType": "none",
@@ -50,8 +79,29 @@ function createChartWith ( data ){
             },
 
             {
+              "title": "More2",
+              "percentHeight": 20,
+              "creditsPosition" : "bottom-right",
+			  "marginTop": 1,
+			  "showCategoryAxis": true,
+              "valueAxes": [{
+                  "id":"v1",
+                  "position": "left"
+              }, {
+                  "id":"v2",
+                  "position": "right"
+              }],
+              "stockGraphs": data[0].stockgraphs[2],
+			  "stockLegend": {
+				"markerType": "none",
+				"markerSize": 0,
+				"labelText": "",
+				"periodValueTextRegular": "[[value.macd]]"
+			  }
+            },
+            {
 			  "title": "Volume",
-			  "percentHeight": 20,
+			  "percentHeight": 10,
 			  "marginTop": 1,
 			  "showCategoryAxis": true,
 			  "valueAxes": [ {
@@ -73,7 +123,7 @@ function createChartWith ( data ){
 				"markerType": "none",
 				"markerSize": 0,
 				"labelText": "",
-				"periodValueTextRegular": "[[value.close]]"
+				"periodValueTextRegular": "[[value.volume]]"
 			  }
 
             }
@@ -82,22 +132,23 @@ function createChartWith ( data ){
           "chartScrollbarSettings": {
             "graph": "g1",
             "usePeriod": "10mm",
-            "position": "bottom"
+            "position": "top"
           },
 
           "chartCursorSettings": {
             "pan": true,
             "valueLineEnabled": true,
-            "valueLineBalloonEnabled": true
+            "valueLineBalloonEnabled": false 
           },
 
           "periodSelector": {
-            "position": "bottom",
+            "position": "top",
             "dateFormat": "YYYY-MM-DD JJ:NN",
             "inputFieldWidth": 150,
                 "periods": [ {
               "period": "hh",
               "count": 1,
+              "selected": true,
               "label": "1 hour"
             }, {
               "period": "hh",
@@ -106,7 +157,6 @@ function createChartWith ( data ){
             }, {
               "period": "hh",
               "count": 5,
-              "selected": true,
               "label": "5 hour"
             }, {
               "period": "hh",
@@ -142,7 +192,7 @@ function createChartWith ( data ){
           },
 
           "legendSettings": {
-            "position": "top",
+            "position": "bottom",
             "valueWidth": 150
             //"color": "#fff"
           },

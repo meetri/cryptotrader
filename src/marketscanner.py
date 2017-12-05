@@ -19,9 +19,10 @@ for markets in marketlist:
             mybot = MA2Bot( {"market": market["value"]} )
             try:
                 res = mybot.process()
-                if res["uptrend"]:
-                    if float(res["atrPercent"]) > 1 and float(res["slope"]) > 1:
-                        print(res)
+                print(res)
+                #if res["uptrend"]:
+                 #   if float(res["atrPercent"]) > 1 and float(res["slope"]) > 1:
+                  #      print(res)
             except Exception as ex:
                 print("error: {}".format(ex))
 
